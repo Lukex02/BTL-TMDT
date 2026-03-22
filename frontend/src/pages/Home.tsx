@@ -1,5 +1,5 @@
 // src/pages/Home.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
 import CategoryBar from "../components/CategoryBar";
@@ -11,7 +11,7 @@ import type { Product } from "../types/product";
 
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products] = useState<Product[]>(mockProducts);
 
  /*useEffect(() => {
   const fetchProducts = async () => {
@@ -25,9 +25,6 @@ export default function Home() {
 
   fetchProducts();
 }, []);*/
-useEffect(() => {
-    setProducts(mockProducts);
-  }, []);
 
   return (
     <>

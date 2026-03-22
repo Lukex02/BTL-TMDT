@@ -1,5 +1,5 @@
-// src/components/ProductCard.tsx
 import type { Product } from "../types/product";
+import { Link } from "react-router-dom";
 
 type Props = {
   product: Product;
@@ -23,9 +23,14 @@ export default function ProductCard({ product }: Props) {
       </p>
 
       <div className="product-actions">
-        <button className="product-card-btn product-card-view">
+        <Link 
+          to={`/product/${product.id}`} 
+          className="product-card-btn product-card-view"
+          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           Xem
-        </button>
+        </Link>
+
         <button
           className="product-card-btn product-card-cart"
           aria-label="Add to cart"
