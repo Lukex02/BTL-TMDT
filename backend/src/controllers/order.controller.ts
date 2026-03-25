@@ -3,5 +3,5 @@ import { OrderService } from "src/services/order.service";
 
 @Controller('order')
 export class OrderController {
-  constructor(private authService: OrderService) {}
+  constructor(private orderService: OrderService) {}
 }
