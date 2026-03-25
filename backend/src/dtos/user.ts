@@ -16,8 +16,3 @@ export class UserNestedDto implements Pick<
     username: string;
     avatarUrl?: string;
 }
-
-export class CredentialsDto {
-  username: string;
-  password: string;
-}
