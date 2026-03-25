@@ -6,7 +6,7 @@ import { SupabaseModule } from 'src/database/supabase.module';
 @Module({
   imports: [SupabaseModule],
   controllers: [ReviewController],
-  providers: [],
+  providers: [ReviewService],
   exports: [ReviewService],
 })
 export class ReviewModule {}

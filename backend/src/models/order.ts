@@ -1,19 +1,19 @@
-import { ProductDto } from "./product";
-import { UserNestedDto } from "./user";
+import { Product } from "./product";
+import { UserNested } from "./user";
 
-export class OrderItemDto {
+export class OrderItem {
   id: number;
-  product: ProductDto;
+  product: Product;
   quantity: number;
   unitPrice: number;
 }
 
-export class OrderDto {
+export class Order {
   id: number;
-  user: UserNestedDto;
+  user: UserNested;
   totalAmount: number;
   status: 'pending' | 'paid' | 'shipped' | 'completed' | 'canceled';
   createdAt: Date;
   updatedAt: Date;
-  items?: OrderItemDto[]; // include order items if needed
+  items?: OrderItem[]; // include order items if needed
 }

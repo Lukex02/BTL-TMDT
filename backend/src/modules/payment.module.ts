@@ -6,7 +6,7 @@ import { SupabaseModule } from 'src/database/supabase.module';
 @Module({
   imports: [SupabaseModule],
   controllers: [PaymentController],
-  providers: [],
+  providers: [PaymentService],
   exports: [PaymentService],
 })
 export class PaymentModule {}

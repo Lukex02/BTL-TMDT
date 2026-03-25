@@ -3,6 +3,6 @@ import { SupabaseProvider } from './supabase.provider';
 
 @Module({
   providers: [SupabaseProvider],
-  exports: [SupabaseProvider],
+  exports: ['SUPABASE_CLIENT'],
 })
 export class SupabaseModule {}

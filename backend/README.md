@@ -36,20 +36,38 @@ $ npm run test:cov
 
 ## Schema
 
-### Signup/Login
+### Login
+Use "username" or "email"
 ```bash
 {
-  "username": "john_doe",
+  "username": "john_doe", # "email": "john@example.com",
   "password": "123456"
 }
 ```
-### User
+### Signup
 ```bash
 {
-  "id": 1,
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "123456"
+  "role": "customer"
+}
+```
+### User
+Needs to be managing session and refresh token manually using the endpoint `/auth/refresh`
+```bash
+{
+  "id": "1",
   "username": "john_doe",
   "email": "john@example.com",
   "role": "seller",
+  "avatarUrl": "https://example.com/avatar/jane.jpg",
+  "session": {
+    "accessToken": "abcxyz",
+    "refreshToken": "123abc",
+    "expiresIn": 3600
+    "expiresAt": 1774457693
+  }
   "createdAt": "2026-03-20T08:00:00.000Z",
   "updatedAt": "2026-03-20T08:00:00.000Z"
 }
@@ -57,7 +75,7 @@ $ npm run test:cov
 ### Product
 ```bash
 {
-  "id": 101,
+  "id": "101",
   "seller": {
     "id": 1,
     "username": "john_doe",
@@ -101,7 +119,7 @@ $ npm run test:cov
 ### Order
 ```bash
 {
-  "id": 5001,
+  "id": "5001",
   "user": {
     "id": 1,
     "username": "john_doe",
@@ -164,8 +182,8 @@ $ npm run test:cov
 ### Payment
 ```bash
 {
-  "id": 9001,
-  "orderId": 5001,
+  "id": "9001",
+  "orderId": "5001",
   "amount": 440.0,
   "method": "credit_card",
   "status": "completed",
@@ -175,9 +193,9 @@ $ npm run test:cov
 ### Review
 ```bash
 {
-  "id": 3001,
+  "id": "3001",
   "user": {
-    "id": 2,
+    "id": "2",
     "username": "jane_doe",
     "avatarUrl": "https://example.com/avatar/jane.jpg"
   },
