@@ -30,10 +30,10 @@ export class ReviewService implements IReviewService {
       ? {
           id: review.id,
           user: review.user,
-          productId: review.product_id,
+          productId: review.productId,
           rating: review.rating,
           comment: review.comment,
-          createdAt: review.created_at,
+          createdAt: review.createdAt,
         }
       : null;
   }
