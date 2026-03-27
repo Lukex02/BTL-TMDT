@@ -7,8 +7,16 @@ import {
   Param,
   Delete,
   Put,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
+import { SupabaseAuthGuard } from 'src/common/guards/supabase.guard';
 import {
   CategoryDto,
   DiscountDto,
@@ -17,6 +25,7 @@ import {
 } from 'src/dtos/product';
 import { ProductService } from 'src/services/product.service';
 
+@ApiBearerAuth()
 @Controller('product')
 export class ProductController {
   constructor(private productService: ProductService) {}
@@ -61,18 +70,21 @@ export class ProductController {
     return await this.productService.getProductByFilter(filter);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Post('create')
   @ApiOperation({ summary: 'Create product' })
   async create(@Body() create: ProductDto) {
     return await this.productService.createProduct(create);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Put('update')
   @ApiOperation({ summary: 'Update product' })
   async update(@Body() update: ProductDto) {
     return await this.productService.updateProduct(update);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Delete('delete/:productId')
   @ApiOperation({ summary: 'Delete product' })
   @ApiParam({ name: 'productId', type: Number, example: 1 })
@@ -86,6 +98,7 @@ export class ProductController {
     return await this.productService.getAllCategories();
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Post('categories/create')
   @ApiOperation({ summary: 'Create product category' })
   @ApiBody({ type: CategoryDto })
@@ -93,6 +106,7 @@ export class ProductController {
     return await this.productService.createCategory(create);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Put('categories/update')
   @ApiOperation({ summary: 'Update product category' })
   @ApiBody({ type: CategoryDto })
@@ -100,6 +114,7 @@ export class ProductController {
     return await this.productService.updateCategory(update);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Delete('categories/delete/:categoryId')
   @ApiOperation({ summary: 'Delete product category' })
   @ApiParam({ name: 'categoryId', type: Number, example: 1 })
@@ -113,6 +128,7 @@ export class ProductController {
     return await this.productService.getAllDiscounts();
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Post('discounts/create')
   @ApiOperation({ summary: 'Create discount rule' })
   @ApiBody({ type: DiscountDto })
@@ -120,6 +136,7 @@ export class ProductController {
     return await this.productService.createDiscount(create);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Put('discounts/update')
   @ApiOperation({ summary: 'Update discount rule' })
   @ApiBody({ type: DiscountDto })
@@ -127,6 +144,7 @@ export class ProductController {
     return await this.productService.updateDiscount(update);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Delete('discounts/delete/:discountId')
   @ApiOperation({ summary: 'Delete discount rule' })
   @ApiParam({ name: 'discountId', type: Number, example: 1 })

@@ -1,8 +1,19 @@
-import { Controller, Post, Body, Delete, Get, Param, Put } from '@nestjs/common';
-import { ApiOperation, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Delete,
+  Get,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { SupabaseAuthGuard } from 'src/common/guards/supabase.guard';
 import { PaymentDto } from 'src/dtos/payment';
 import { PaymentService } from 'src/services/payment.service';
 
+@ApiBearerAuth()
 @Controller('payment')
 export class PaymentController {
   constructor(private paymentService: PaymentService) {}
@@ -32,18 +43,21 @@ export class PaymentController {
     return await this.paymentService.getByUserId(userId);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Post('create')
   @ApiOperation({ summary: 'Create payment' })
   async create(@Body() create: PaymentDto) {
     return await this.paymentService.createPayment(create);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Put('update')
   @ApiOperation({ summary: 'Update payment' })
   async update(@Body() update: PaymentDto) {
     return await this.paymentService.updatePayment(update);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Delete('delete/:paymentId')
   @ApiOperation({ summary: 'Delete payment' })
   @ApiParam({ name: 'paymentId', type: Number, example: 1 })

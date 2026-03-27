@@ -1,8 +1,10 @@
-import { Controller, Post, Body, Get, Patch, Param } from '@nestjs/common';
-import { ApiOperation, ApiParam } from '@nestjs/swagger';
+import { Controller, Post, Body, Get, Patch, Param, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { SupabaseAuthGuard } from 'src/common/guards/supabase.guard';
 import { OrderDto } from 'src/dtos/order';
 import { OrderService } from 'src/services/order.service';
 
+@ApiBearerAuth()
 @Controller('order')
 export class OrderController {
   constructor(private orderService: OrderService) {}
@@ -28,15 +30,20 @@ export class OrderController {
     return await this.orderService.getByUserSeller(userId);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Post('create')
   @ApiOperation({ summary: 'Create order' })
   async create(@Body() create: OrderDto) {
     return await this.orderService.createOrder(create);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Patch('update/:orderId/:status')
   @ApiOperation({ summary: 'Update order' })
-  async update(@Param('orderId') orderId: number, @Param('status') status: string) {
+  async update(
+    @Param('orderId') orderId: number,
+    @Param('status') status: string,
+  ) {
     return await this.orderService.updateOrderStatus(orderId, status);
   }
 }

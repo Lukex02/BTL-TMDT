@@ -1,8 +1,19 @@
-import { Controller, Post, Body, Delete, Get, Param, Put } from '@nestjs/common';
-import { ApiOperation, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Delete,
+  Get,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { SupabaseAuthGuard } from 'src/common/guards/supabase.guard';
 import { UserDto } from 'src/dtos/user';
 import { UserService } from 'src/services/user.service';
 
+@ApiBearerAuth()
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
@@ -31,6 +42,7 @@ export class UserController {
     return await this.userService.getByUsername(username);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Get('role/:role')
   @ApiOperation({ summary: 'Get user by role' })
   @ApiParam({ name: 'role', type: String, example: 'customer' })
@@ -38,12 +50,14 @@ export class UserController {
     return await this.userService.getByRole(role);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Put('update')
   @ApiOperation({ summary: 'Update user' })
   async update(@Body() update: UserDto) {
     return await this.userService.updateUser(update);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Delete('delete/:userId')
   @ApiOperation({ summary: 'Delete user' })
   @ApiParam({

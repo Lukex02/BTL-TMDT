@@ -31,6 +31,7 @@ export class AuthController {
     return await this.authService.logout();
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh JWT token' })
   async refresh(@Body() refreshDto: RefreshDto) {
@@ -43,7 +44,8 @@ export class AuthController {
   async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
     return await this.authService.updatePassword(updatePasswordDto);
   }
-
+  
+  @UseGuards(SupabaseAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'Get user information' })
   async getUser() {
