@@ -37,6 +37,10 @@ export class ProductService implements IProductService {
       attributeName:name,
       attributeValue:value
     ),
+    images:ProductImage (
+      url,
+      createdAt: created_at
+    ),
     createdAt: created_at,
     updatedAt: updated_at
   `;

@@ -1,10 +1,10 @@
-import { User } from '../models/user';
+import { UserDto } from "src/dtos/user";
 
 export interface IUserService {
-  getAll(): Promise<User[]>;
-  getById(userId: string): Promise<User | null>;
-  getByUsername(username: string): Promise<User | null>;
-  getByRole(role: string): Promise<User[]>;
-  updateUser(update: User): Promise<any>;
+  getAll(): Promise<UserDto[]>;
+  getById(userId: string): Promise<UserDto | null>;
+  getByUsername(username: string): Promise<UserDto | null>;
+  getByRole(role: string): Promise<UserDto[]>;
+  updateUser(update: UserDto): Promise<any>;
   deleteUser(userId: string): Promise<any>;
 }

@@ -1,11 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { IsDateString, IsString } from "class-validator";
 
 export class UserDto {
   @ApiProperty({
     description: 'User ID',
-    example: '2964de3d-1202-4131-8f47-1b6c14e150aa',
+    example: 'fded0a14-b81c-4b04-952b-f09d545ad27a',
     required: true,
   })
+  @IsString()
   id: string;
 
   @ApiProperty({
@@ -13,6 +15,7 @@ export class UserDto {
     example: 'NgVanA',
     required: true,
   })
+  @IsString()
   username: string;
 
   @ApiProperty({
@@ -20,6 +23,7 @@ export class UserDto {
     example: 'ng.van@gmail.com',
     required: true,
   })
+  @IsString()
   email: string;
 
   @ApiProperty({
@@ -27,6 +31,7 @@ export class UserDto {
     example: 'customer',
     required: true,
   })
+  @IsString()
   role: 'customer' | 'seller' | 'admin';
 
   @ApiProperty({
@@ -34,6 +39,7 @@ export class UserDto {
     example: 'https://example.com/avatar.jpg',
     required: false,
   })
+  @IsString()
   avatarUrl?: string;
 
   @ApiProperty({
@@ -41,6 +47,7 @@ export class UserDto {
     example: '123 Main St',
     required: false,
   })
+  @IsString()
   address?: string;
 
   @ApiProperty({
@@ -48,6 +55,7 @@ export class UserDto {
     example: '1234567890',
     required: false,
   })
+  @IsString()
   phone?: string;
 
   @ApiProperty({
@@ -55,6 +63,7 @@ export class UserDto {
     example: '1990-01-01',
     required: false,
   })
+  @IsDateString()
   createdAt: Date;
 
   @ApiProperty({
@@ -62,15 +71,17 @@ export class UserDto {
     example: '1990-01-01',
     required: false,
   })
+  @IsDateString()
   updatedAt: Date;
 }
 
 export class UserNestedDto implements Pick<UserDto, 'id' | 'username' | 'avatarUrl'> {
   @ApiProperty({
     description: 'User ID',
-    example: '2964de3d-1202-4131-8f47-1b6c14e150aa',
+    example: 'fded0a14-b81c-4b04-952b-f09d545ad27a',
     required: true,
   })
+  @IsString()
   id: string;
 
   @ApiProperty({
@@ -78,6 +89,7 @@ export class UserNestedDto implements Pick<UserDto, 'id' | 'username' | 'avatarU
     example: 'NgVanA',
     required: true,
   })
+  @IsString()
   username: string;
 
   @ApiProperty({
@@ -85,5 +97,6 @@ export class UserNestedDto implements Pick<UserDto, 'id' | 'username' | 'avatarU
     example: 'https://example.com/avatar.jpg',
     required: false,
   })
+  @IsString()
   avatarUrl?: string;
 }

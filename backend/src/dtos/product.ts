@@ -12,6 +12,25 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
+
+export class ProductImageDto {
+  @IsString()
+  @ApiProperty({
+    description: 'Product image URL',
+    example: 'https://example.com/image.jpg',
+    required: true,
+  })
+  url: string;
+
+  @IsOptional()
+  @Type(() => Date)
+  @ApiProperty({
+    description: 'Product image created at',
+    required: false,
+  })
+  createdAt?: Date;
+}
+
 export class CategoryDto {
   @Type(() => Number)
   @IsNumber()
@@ -44,6 +63,11 @@ export class ProductDto {
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
+  @ApiProperty({
+    description: 'Product ID',
+    example: 1,
+    required: false,
+  })
   id?: number;
 
   @IsObject()
@@ -115,6 +139,8 @@ export class ProductDto {
   @IsArray()
   @ApiProperty({
     description: 'Product images',
+    isArray: true,
+    type: ProductImageDto,
     required: false,
   })
   images?: ProductImageDto[];
@@ -152,24 +178,6 @@ export class ProductAttributeDto {
     required: true,
   })
   attributeValue: string;
-}
-
-export class ProductImageDto {
-  @IsString()
-  @ApiProperty({
-    description: 'Product image URL',
-    example: 'https://example.com/image.jpg',
-    required: true,
-  })
-  url: string;
-
-  @IsOptional()
-  @Type(() => Date)
-  @ApiProperty({
-    description: 'Product image created at',
-    required: false,
-  })
-  createdAt?: Date;
 }
 
 export class DiscountDto {
@@ -272,3 +280,4 @@ export class ProductFilterDto {
   @IsNumber()
   stock?: number;
 }
+
