@@ -1,6 +1,7 @@
 import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
 import { UserDto } from 'src/dtos/user';
 import { IUserService } from 'src/interfaces/user.interface';
+import { User } from 'src/models/user';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -14,7 +15,7 @@ export class UserService implements IUserService {
     if (error) {
       throw new BadRequestException(error.message);
     }
-    return data.map((user: any) => this.mapToUserDto(user));
+    return data.map((user: any) => this.mapToUser(user));
   }
 
   async getById(userId: string) {
@@ -26,7 +27,7 @@ export class UserService implements IUserService {
     if (error) {
       throw new BadRequestException(error.message);
     }
-    return this.mapToUserDto(data);
+    return this.mapToUser(data);
   }
 
   async getByUsername(username: string) {
@@ -38,7 +39,7 @@ export class UserService implements IUserService {
     if (error) {
       throw new BadRequestException(error.message);
     }
-    return this.mapToUserDto(data);
+    return this.mapToUser(data);
   }
 
   async getByRole(role: string) {
@@ -50,7 +51,7 @@ export class UserService implements IUserService {
     if (error) {
       throw new BadRequestException(error.message);
     }
-    return data.map((user: any) => this.mapToUserDto(user));
+    return data.map((user: any) => this.mapToUser(user));
   }
 
   async updateUser(update: UserDto) {
@@ -79,7 +80,7 @@ export class UserService implements IUserService {
     return { message: 'User deleted successfully' };
   }
 
-  private mapToUserDto(user: any): UserDto | null {
+  private mapToUser(user: any): User | null {
     return user
       ? {
           id: user.id,

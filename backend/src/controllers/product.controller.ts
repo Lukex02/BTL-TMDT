@@ -27,14 +27,14 @@ export class ProductController {
     return await this.productService.getAllProducts();
   }
 
-  @Get('byId/:productId')
+  @Get(':productId')
   @ApiOperation({ summary: 'Get product by id' })
   @ApiParam({ name: 'productId', type: Number, example: 1 })
   async getById(@Param('productId') productId: number) {
     return await this.productService.getProductById(productId);
   }
 
-  @Get('byFilter')
+  @Get('filter')
   @ApiOperation({ summary: 'Get products by filter' })
   @ApiQuery({
     name: 'name',
@@ -42,7 +42,12 @@ export class ProductController {
     example: 'Test Item 1',
     required: false,
   })
-  @ApiQuery({ name: 'sellerId', type: Number, example: 1, required: false })
+  @ApiQuery({
+    name: 'sellerId',
+    type: String,
+    example: '2964de3d-1202-4131-8f47-1b6c14e150aa',
+    required: false,
+  })
   @ApiQuery({ name: 'categoryId', type: Number, example: 1, required: false })
   @ApiQuery({
     name: 'status',

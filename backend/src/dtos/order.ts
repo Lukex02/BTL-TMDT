@@ -1,6 +1,3 @@
-import { Expose } from 'class-transformer';
-import { ProductDto } from './product';
-import { UserNestedDto } from './user';
 import { IsArray, IsDateString, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -49,12 +46,12 @@ export class OrderDto {
   id: number;
 
   @ApiProperty({
-    description: 'Order user',
-    example: UserNestedDto,
+    description: 'Order user ID',
+    example: 'fded0a14-b81c-4b04-952b-f09d545ad27a',
     required: true,
   })
-  @IsObject()
-  user: UserNestedDto;
+  @IsString()
+  userId: string;
 
   @ApiProperty({
     description: 'Order total amount',

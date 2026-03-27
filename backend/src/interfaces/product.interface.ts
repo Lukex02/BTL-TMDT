@@ -1,9 +1,10 @@
 import { ProductDto, ProductFilterDto } from 'src/dtos/product';
+import { Product } from 'src/models/product';
 
 export interface IProductService {
   // Products
   getAllProducts(): Promise<any[]>;
-  getProductById(productId: number): Promise<ProductDto | null>;
+  getProductById(productId: number): Promise<Product | null>;
   getProductByFilter(filter: ProductFilterDto): Promise<any[]>;
   createProduct(create: ProductDto): Promise<any>;
   updateProduct(update: ProductDto): Promise<any>;

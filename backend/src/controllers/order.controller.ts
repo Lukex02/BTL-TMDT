@@ -7,21 +7,21 @@ import { OrderService } from 'src/services/order.service';
 export class OrderController {
   constructor(private orderService: OrderService) {}
 
-  @Get('byId/:orderId')
+  @Get(':orderId')
   @ApiOperation({ summary: 'Get order by id' })
   @ApiParam({ name: 'orderId', type: String, example: '1' })
   async getById(@Param('orderId') orderId: string) {
     return await this.orderService.getById(orderId);
   }
 
-  @Get('byBuyer/:userId')
+  @Get('buyer/:userId')
   @ApiOperation({ summary: 'Get orders by user buyer' })
   @ApiParam({ name: 'userId', type: String, example: '1' })
   async getByUserBuyer(@Param('userId') userId: string) {
     return await this.orderService.getByUserBuyer(userId);
   }
 
-  @Get('bySeller/:userId')
+  @Get('seller/:userId')
   @ApiOperation({ summary: 'Get orders by user seller' })
   @ApiParam({ name: 'userId', type: String, example: '1' })
   async getByUserSeller(@Param('userId') userId: string) {

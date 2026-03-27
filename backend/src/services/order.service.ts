@@ -6,9 +6,11 @@ import {
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { OrderDto, OrderItemDto } from 'src/dtos/order';
+import { IOrderService } from 'src/interfaces/order.interface';
+import { Order } from 'src/models/order';
 
 @Injectable()
-export class OrderService {
+export class OrderService implements IOrderService {
   constructor(@Inject('SUPABASE_CLIENT') private supabase: SupabaseClient) {}
 
   private orderQueryString = `
@@ -58,7 +60,7 @@ export class OrderService {
       throw new BadRequestException(error.message);
     }
 
-    return this.mapToOrderDto(data);
+    return this.mapToOrder(data);
   }
 
   async getByUserBuyer(userId: string) {
@@ -70,7 +72,7 @@ export class OrderService {
     if (error) {
       throw new BadRequestException(error.message);
     }
-    return data.map((order: any) => this.mapToOrderDto(order));
+    return data.map((order: any) => this.mapToOrder(order));
   }
 
   async getByUserSeller(userId: string) {
@@ -82,7 +84,7 @@ export class OrderService {
     if (error) {
       throw new BadRequestException(error.message);
     }
-    return data.map((order: any) => this.mapToOrderDto(order));
+    return data.map((order: any) => this.mapToOrder(order));
   }
 
   async createOrder(create: OrderDto) {
@@ -164,7 +166,7 @@ export class OrderService {
     return { message: 'Order deleted successfully' };
   }
 
-  private mapToOrderDto(order: any): OrderDto | null {
+  private mapToOrder(order: any): Order | null {
     return order
       ? {
           id: order.id,
@@ -180,7 +182,7 @@ export class OrderService {
 
   private mapOrderDtoToDb(order: OrderDto) {
     return {
-      buyer_id: order.user.id,
+      buyer_id: order.userId,
       total_amount: order.totalAmount,
       status: order.status,
     };

@@ -13,7 +13,7 @@ export class UserController {
     return await this.userService.getAll();
   }
 
-  @Get('byId/:userId')
+  @Get(':userId')
   @ApiOperation({ summary: 'Get user by id' })
   @ApiParam({
     name: 'userId',
@@ -24,14 +24,14 @@ export class UserController {
     return await this.userService.getById(userId);
   }
 
-  @Get('byUsername/:username')
+  @Get('username/:username')
   @ApiOperation({ summary: 'Get user by username' })
   @ApiParam({ name: 'username', type: String, example: 'NgVanA' })
   async getByUsername(@Param('username') username: string) {
     return await this.userService.getByUsername(username);
   }
 
-  @Get('byRole/:role')
+  @Get('role/:role')
   @ApiOperation({ summary: 'Get user by role' })
   @ApiParam({ name: 'role', type: String, example: 'customer' })
   async getByRole(@Param('role') role: string) {

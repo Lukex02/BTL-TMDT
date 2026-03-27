@@ -13,6 +13,24 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 
 
+export class ProductAttributeDto {
+  @IsString()
+  @ApiProperty({
+    description: 'Product attribute name',
+    example: 'Test Attribute',
+    required: true,
+  })
+  attributeName: string;
+
+  @IsString()
+  @ApiProperty({
+    description: 'Product attribute value',
+    example: 'Test Attribute Value',
+    required: true,
+  })
+  attributeValue: string;
+}
+
 export class ProductImageDto {
   @IsString()
   @ApiProperty({
@@ -133,6 +151,8 @@ export class ProductDto {
   @ApiProperty({
     description: 'Product attributes',
     required: false,
+    isArray: true,
+    type: ProductAttributeDto,
   })
   attributes?: ProductAttributeDto[];
 
@@ -160,24 +180,6 @@ export class ProductDto {
     required: false,
   })
   updatedAt?: Date;
-}
-
-export class ProductAttributeDto {
-  @IsString()
-  @ApiProperty({
-    description: 'Product attribute name',
-    example: 'Test Attribute',
-    required: true,
-  })
-  attributeName: string;
-
-  @IsString()
-  @ApiProperty({
-    description: 'Product attribute value',
-    example: 'Test Attribute Value',
-    required: true,
-  })
-  attributeValue: string;
 }
 
 export class DiscountDto {
@@ -257,9 +259,8 @@ export class ProductFilterDto {
   name: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  sellerId?: number;
+  @IsString()
+  sellerId?: string;
 
   @IsOptional()
   @Type(() => Number)

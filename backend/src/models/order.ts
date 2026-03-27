@@ -5,6 +5,7 @@ export class OrderItem {
   id: number;
   product: Product;
   quantity: number;
+  unitPrice: number;
 }
 
 export class Order {

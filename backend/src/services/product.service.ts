@@ -12,6 +12,7 @@ import {
   ProductFilterDto,
 } from 'src/dtos/product';
 import { IProductService } from 'src/interfaces/product.interface';
+import { Product } from 'src/models/product';
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -45,7 +46,7 @@ export class ProductService implements IProductService {
     updatedAt: updated_at
   `;
 
-  private mapToProductDto(product: any): ProductDto | null {
+  private mapToProduct(product: any): Product | null {
     // const _category: Category = {
     //   id: product.category?.id,
     //   name: product.category?.name,
@@ -139,8 +140,8 @@ export class ProductService implements IProductService {
       throw new BadRequestException(error.message);
     }
     return products
-      .map((product: any) => this.mapToProductDto(product))
-      .filter((product: ProductDto) => product !== null);
+      .map((product: any) => this.mapToProduct(product))
+      .filter((product: Product) => product !== null);
   }
 
   async getProductById(productId: number) {
@@ -152,7 +153,7 @@ export class ProductService implements IProductService {
     if (error) {
       throw new BadRequestException(error.message);
     }
-    return this.mapToProductDto(data);
+    return this.mapToProduct(data);
   }
 
   async getProductByFilter(filter: ProductFilterDto) {
@@ -187,8 +188,8 @@ export class ProductService implements IProductService {
     if (error) throw new BadRequestException(error.message);
 
     return data
-      .map((product: any) => this.mapToProductDto(product))
-      .filter((product: ProductDto) => product !== null);
+      .map((product: any) => this.mapToProduct(product))
+      .filter((product: Product) => product !== null);
   }
 
   async createProduct(create: ProductDto) {

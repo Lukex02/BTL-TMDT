@@ -1,11 +1,17 @@
 import { UserNested } from './user';
 
+export class Category {
+  id?: number;
+  name: string;
+  description?: string;
+}
+
 export class Product {
   id: number;
   seller: UserNested;
   name: string;
   description?: string;
-  categoryId?: number;
+  category?: Category;
   price: number;
   stock: number;
   status: 'active' | 'inactive' | 'discontinued';
@@ -29,7 +35,7 @@ export class ProductImage {
 export class Discount {
   id?: number;
   productId?: number; // null for global discount
-  categoryId?: number; // null for global discount
+  categoryId: number; // null for global discount
   percentage?: number; // 0-100
   fixedAmount?: number;
   startAt: Date;
