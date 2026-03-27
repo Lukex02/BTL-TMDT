@@ -49,7 +49,7 @@ Use "username" or "email"
 {
   "username": "john_doe",
   "email": "john@example.com",
-  "password": "123456"
+  "password": "123456",
   "role": "customer"
 }
 ```
@@ -57,7 +57,7 @@ Use "username" or "email"
 Needs to be managing session and refresh token manually using the endpoint `/auth/refresh`
 ```bash
 {
-  "id": "1",
+  "id": 1,
   "username": "john_doe",
   "email": "john@example.com",
   "role": "seller",
@@ -65,7 +65,7 @@ Needs to be managing session and refresh token manually using the endpoint `/aut
   "session": {
     "accessToken": "abcxyz",
     "refreshToken": "123abc",
-    "expiresIn": 3600
+    "expiresIn": 3600,
     "expiresAt": 1774457693
   }
   "createdAt": "2026-03-20T08:00:00.000Z",
@@ -75,7 +75,7 @@ Needs to be managing session and refresh token manually using the endpoint `/aut
 ### Product
 ```bash
 {
-  "id": "101",
+  "id": 101,
   "seller": {
     "id": 1,
     "username": "john_doe",
@@ -83,7 +83,11 @@ Needs to be managing session and refresh token manually using the endpoint `/aut
   }
   "name": "AMD Ryzen 5 5600X",
   "description": "6-core CPU, 12 threads, 3.7GHz base clock",
-  "category": ["CPU"],
+  "category": {
+    "id": 1,
+    "name": "CPU"
+    "description": "CPU"
+  },
   "price": 220.0,
   "stock": 15,
   "status": "active",
@@ -119,7 +123,7 @@ Needs to be managing session and refresh token manually using the endpoint `/aut
 ### Order
 ```bash
 {
-  "id": "5001",
+  "id": 5001,
   "user": {
     "id": 1,
     "username": "john_doe",
@@ -182,8 +186,8 @@ Needs to be managing session and refresh token manually using the endpoint `/aut
 ### Payment
 ```bash
 {
-  "id": "9001",
-  "orderId": "5001",
+  "id": 9001,
+  "orderId": 5001,
   "amount": 440.0,
   "method": "credit_card",
   "status": "completed",
@@ -193,9 +197,9 @@ Needs to be managing session and refresh token manually using the endpoint `/aut
 ### Review
 ```bash
 {
-  "id": "3001",
+  "id": 3001,
   "user": {
-    "id": "2",
+    "id": 2,
     "username": "jane_doe",
     "avatarUrl": "https://example.com/avatar/jane.jpg"
   },

@@ -10,15 +10,14 @@ export class User {
     expiresIn: number;
     expiresAt: number;
   };
+  address?: string;
+  phone?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export class UserNested implements Pick<
-  User,
-  'id' | 'username' | 'avatarUrl'
-> {
-    id: string;
-    username: string;
-    avatarUrl?: string;
+export class UserNested implements Pick<User, 'id' | 'username' | 'avatarUrl'> {
+  id: string;
+  username: string;
+  avatarUrl?: string;
 }

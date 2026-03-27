@@ -13,11 +13,11 @@ import {
   RegisterDto,
   UpdatePasswordDto,
 } from 'src/dtos/auth';
-import { IAuthRepository } from 'src/interfaces/auth.interface';
+import { IAuthService } from 'src/interfaces/auth.interface';
 import { User } from 'src/models/user';
 
 @Injectable()
-export class AuthService implements IAuthRepository {
+export class AuthService implements IAuthService {
   constructor(@Inject('SUPABASE_CLIENT') private supabase: SupabaseClient) {}
 
   private parseUser(cred: any, acc: any): User {
@@ -27,12 +27,15 @@ export class AuthService implements IAuthRepository {
       email: cred.user.email,
       role: acc.role,
       avatarUrl: acc.avatarUrl,
-      session: {
-        accessToken: cred.session.access_token,
-        refreshToken: cred.session.refresh_token,
-        expiresIn: cred.session.expires_in,
-        expiresAt: cred.session.expires_at,
-      },
+      ...(cred.session && {
+        // If session is not avalaible, skip it
+        session: {
+          accessToken: cred.session?.access_token,
+          refreshToken: cred.session?.refresh_token,
+          expiresIn: cred.session?.expires_in,
+          expiresAt: cred.session?.expires_at,
+        },
+      }),
       createdAt: cred.user.created_at,
       updatedAt: cred.user.updated_at,
     };
@@ -130,5 +133,21 @@ export class AuthService implements IAuthRepository {
       throw new BadRequestException(error.message);
     }
     return { message: 'Password updated' };
+  }
+
+  async getUser() {
+    const { data: cred, error: errorCred } = await this.supabase.auth.getUser();
+    if (errorCred) {
+      throw new BadRequestException(errorCred.message);
+    }
+    const { data, error } = await this.supabase
+      .from('User')
+      .select()
+      .eq('id', cred.user.id)
+      .single();
+    if (error) {
+      throw new BadRequestException(error.message);
+    }
+    return this.parseUser(cred, data);
   }
 }

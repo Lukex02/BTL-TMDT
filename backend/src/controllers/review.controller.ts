@@ -1,5 +1,5 @@
-import { Controller, Post, Body } from "@nestjs/common";
-import { ReviewService } from "src/services/review.service";
+import { Controller, Post, Body } from '@nestjs/common';
+import { ReviewService } from 'src/services/review.service';
 
 @Controller('review')
 export class ReviewController {

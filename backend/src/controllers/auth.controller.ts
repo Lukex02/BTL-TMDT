@@ -1,7 +1,12 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { SupabaseAuthGuard } from 'src/common/guards/supabase.guard';
-import { LoginDto, RefreshDto, RegisterDto, UpdatePasswordDto } from 'src/dtos/auth';
+import {
+  LoginDto,
+  RefreshDto,
+  RegisterDto,
+  UpdatePasswordDto,
+} from 'src/dtos/auth';
 import { AuthService } from 'src/services/auth.service';
 
 @ApiBearerAuth()
@@ -37,5 +42,11 @@ export class AuthController {
   @ApiOperation({ summary: "Update user's password" })
   async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
     return await this.authService.updatePassword(updatePasswordDto);
+  }
+
+  @Get('me')
+  @ApiOperation({ summary: 'Get user information' })
+  async getUser() {
+    return await this.authService.getUser();
   }
 }

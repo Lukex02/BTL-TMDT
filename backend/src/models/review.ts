@@ -1,4 +1,4 @@
-import { UserNested } from "./user";
+import { UserNested } from './user';
 
 export class Review {
   id: number;

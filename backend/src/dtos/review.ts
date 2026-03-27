@@ -1,4 +1,4 @@
-import { UserNestedDto } from "./user";
+import { UserNestedDto } from './user';
 
 export class ReviewDto {
   id: number;
