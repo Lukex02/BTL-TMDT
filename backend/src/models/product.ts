@@ -1,36 +1,41 @@
-import { UserNestedDto } from "./user";
+import { UserNested } from './user';
 
-
-export class ProductDto {
-  id: number;
-  seller: UserNestedDto;
+export class Category {
+  id?: number;
   name: string;
   description?: string;
-  categories?: string[];
+}
+
+export class Product {
+  id: number;
+  seller: UserNested;
+  name: string;
+  description?: string;
+  category?: Category;
   price: number;
   stock: number;
   status: 'active' | 'inactive' | 'discontinued';
-  attributes?: ProductAttributeDto[];
-  images?: ProductImageDto[];
+  attributes?: ProductAttribute[];
+  images?: ProductImage[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-export class ProductAttributeDto {
+export class ProductAttribute {
   attributeName: string;
   attributeValue: string;
 }
 
-export class ProductImageDto {
+export class ProductImage {
   url: string;
   isMain: boolean;
   createdAt: Date;
 }
 
-export class DiscountDto {
+export class Discount {
   id?: number;
   productId?: number; // null for global discount
-  categoryId?: number;
+  categoryId: number; // null for global discount
   percentage?: number; // 0-100
   fixedAmount?: number;
   startAt: Date;

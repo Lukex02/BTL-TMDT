@@ -1,4 +1,4 @@
-export class PaymentDto {
+export class Payment {
   id?: number;
   orderId: number;
   amount: number;
