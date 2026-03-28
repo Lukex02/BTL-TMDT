@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import SupportPage from './pages/SupportPage';
 // Import thêm trang ProductDetail
 import ProductDetail from "./pages/ProductDetail"; 
+import OrderDetail from "./pages/OrderDetail";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/support" element={<SupportPage />} />
         {/* Thêm Route này để hứng đường dẫn có chứa ID sản phẩm */}
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/order/:id" element={<OrderDetail />} />
       </Routes>
     </BrowserRouter>
   );
