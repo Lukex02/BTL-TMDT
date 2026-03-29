@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import './App.css'
-import Home from "./pages/Home";
+import Homepage from "./pages/Homepage";
+import SellerPage from "./pages/SellerPage";
+import CheckoutPage from "./pages/PaymentPage";
 
 function App() {
-  return <Home />;
+  return <CheckoutPage />;
 }
 
 export default App;
