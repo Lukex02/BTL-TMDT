@@ -21,6 +21,22 @@ const OrderDetail: React.FC = () => {
     return isValid(date) ? format(date, formatStr, { locale: vi }) : "---";
   };
 
+  const getStatusConfig = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'pending': 
+        return { label: 'Chờ xử lý', color: '!text-yellow-600' };
+      case 'processing': 
+        return { label: 'Đang xử lý', color: '!text-blue-600' };
+      case 'completed': 
+      case 'delivered': 
+        return { label: 'Hoàn thành', color: '!text-green-600' };
+      case 'cancelled': 
+        return { label: 'Đã hủy', color: '!text-red-600' };
+      default: 
+        return { label: status || 'Chờ xử lý', color: '!text-gray-500' };
+    }
+  };
+
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -35,16 +51,15 @@ const OrderDetail: React.FC = () => {
         });
         const data = await response.json();
 
-        const createdAt = data.createdAt || data.items?.[0]?.product?.createdAt || new Date().toISOString();
+        const createdAt = data.createdAt || new Date().toISOString();
         
         setOrder({
           ...data,
-          status: data.status || 'completed',
           createdAt,
+          shippingFee: data.shipFee !== null ? data.shipFee : 120000,
           paymentMethod: data.paymentMethod || "Thanh toán Online",
-          shippingFee: data.shippingFee || 120000,
           timeline: [
-            { time: createdAt, content: "Đơn hàng thành công", description: "Shipper xác nhận đơn hàng thành công" },
+            { time: createdAt, content: "Đơn hàng thành công", description: "Hệ thống đã ghi nhận đơn đặt hàng" },
             { time: createdAt, content: "Hàng đặt trên web", description: "" }
           ]
         });
@@ -61,6 +76,7 @@ const OrderDetail: React.FC = () => {
   if (!order) return <div className="min-h-screen flex items-center justify-center">Không tìm thấy đơn hàng</div>;
 
   const subTotal = order.items?.reduce((acc: number, item: any) => acc + (item.unitPrice * item.quantity), 0) || 0;
+  const statusConfig = getStatusConfig(order.status);
 
   return (
     <>
@@ -76,7 +92,7 @@ const OrderDetail: React.FC = () => {
                 </Link>
                 <div>
                   <p className="text-[11px] !text-gray-400 font-mono mb-1 bg-gray-100 px-2 py-0.5 rounded w-fit">
-                    {formatDT(order.createdAt, "dd/MM/yyyy HH:mm")} ——— {formatDT(order.createdAt, "dd/MM/yyyy HH:mm")}
+                    {formatDT(order.createdAt, "dd/MM/yyyy HH:mm")} ——— {formatDT(order.updatedAt || order.createdAt, "dd/MM/yyyy HH:mm")}
                   </p>
                   <h1 className="text-3xl font-black !text-gray-950 tracking-tighter">DH-PCITY-{order.id}</h1>
                 </div>
@@ -84,7 +100,9 @@ const OrderDetail: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div className="border border-gray-200 rounded-lg px-4 py-2 bg-white flex items-center gap-2 shadow-sm">
                   <span className="text-sm font-medium !text-gray-500">Trạng thái:</span>
-                  <span className="!text-green-600 font-bold uppercase text-xs tracking-widest">Hoàn thành</span>
+                  <span className={`${statusConfig.color} font-bold uppercase text-xs tracking-widest`}>
+                    {statusConfig.label}
+                  </span>
                   <ChevronDown className="w-4 h-4 !text-gray-400" />
                 </div>
               </div>
@@ -204,7 +222,7 @@ const OrderDetail: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center border-b border-gray-100 pb-3.5">
                       <span className="!text-blue-600 text-base">Địa chỉ:</span>
-                      <span className="font-semibold text-base text-right">{order.address || "(Chưa có địa chỉ)"}</span>
+                      <span className="font-semibold text-base text-right">{order.address || "(Chưa cập nhật)"}</span>
                     </div>
                     <div className="flex justify-between items-center pt-1">
                       <span className="!text-blue-600 text-base">Phương thức:</span>
