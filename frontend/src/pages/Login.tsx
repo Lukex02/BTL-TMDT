@@ -1,17 +1,38 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import type { FormEvent } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { login, saveAuthUser, getAuthUser } from "../services/auth.service";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (event: FormEvent) => {
+  useEffect(() => {
+    const existing = getAuthUser();
+    if (existing) {
+      navigate("/info");
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    console.log("login", { email, password });
-    alert("Đăng nhập thành công (giả lập)");
+    setError("");
+    setLoading(true);
+    try {
+      const user = await login({ email, password });
+      saveAuthUser(user);
+      alert("Đăng nhập thành công");
+      navigate("/");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || "Đăng nhập thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,8 +61,10 @@ export default function Login() {
             <Link to="/forgot">Quên mật khẩu?</Link>
           </div>
 
-          <button className="auth-submit" type="submit">
-            Đăng nhập
+          {error && <p className="auth-error">{error}</p>}
+
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
         </form>
 
