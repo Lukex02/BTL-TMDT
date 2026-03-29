@@ -1,8 +1,20 @@
 // src/components/Navbar.tsx
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { getAuthUser } from "../services/auth.service";
 import "./styles.css";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const user = getAuthUser();
+
+  const handleProfileClick = () => {
+    if (user) {
+      navigate("/info");
+    } else {
+      navigate("/info");
+    }
+  };
+
   return (
     <div className="navbar">
       <div className="nav-left">
@@ -13,9 +25,14 @@ export default function Navbar() {
 
       <div className="nav-right">
         <span className="icon">🔍</span>
-        <Link to="/login" className="icon" aria-label="Đăng nhập">
+        <button
+          onClick={handleProfileClick}
+          className="icon"
+          aria-label={user ? "Thông tin người dùng" : "Đăng nhập"}
+          style={{ border: "none", background: "transparent", cursor: "pointer" }}
+        >
           👤
-        </Link>
+        </button>
         <Link to="/cart" className="icon" aria-label="Giỏ hàng">
           🛒
         </Link>
