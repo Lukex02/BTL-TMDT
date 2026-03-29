@@ -92,7 +92,7 @@ export class ProductController {
     return await this.productService.deleteProduct(productId);
   }
 
-  @Get('categories')
+  @Get('categories/all')
   @ApiOperation({ summary: 'Get all product categories' })
   async getCategories() {
     return await this.productService.getAllCategories();
@@ -122,7 +122,7 @@ export class ProductController {
     return await this.productService.deleteCategory(categoryId);
   }
 
-  @Get('discounts')
+  @Get('discounts/all')
   @ApiOperation({ summary: 'Get all active discounts' })
   async getDiscounts() {
     return await this.productService.getAllDiscounts();

@@ -15,6 +15,15 @@ export class OrderService implements IOrderService {
 
   private orderQueryString = `
     id,
+    totalAmount:total_amount,
+    status,
+    phone,
+    address,
+    createdAt:created_at,
+    updatedAt:updated_at,
+    deliveryAt:delivery_at,
+    deliveryStartAt:delivery_start_at,
+    shipFee:ship_fee,
     buyer:User (
       id,
       username,
@@ -67,7 +76,7 @@ export class OrderService implements IOrderService {
     const { data, error } = await this.supabase
       .from('Order')
       .select(this.orderQueryString)
-      .eq('buyer_id', userId)
+      .eq('buyer.id', userId)
       .order('created_at', { ascending: false });
     if (error) {
       throw new BadRequestException(error.message);
@@ -88,7 +97,7 @@ export class OrderService implements IOrderService {
   }
 
   async createOrder(create: OrderDto) {
-    const { data:order, error:orderErr } = await this.supabase
+    const { data: order, error: orderErr } = await this.supabase
       .from('Order')
       .insert(this.mapOrderDtoToDb(create))
       .select()
@@ -173,8 +182,13 @@ export class OrderService implements IOrderService {
           user: order.buyer,
           totalAmount: order.total_amount,
           status: order.status,
-          createdAt: order.created_at,
-          updatedAt: order.updated_at,
+          phone: order.phone,
+          address: order.address,
+          shipFee: order.shipFee,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+          deliveryAt: order.deliveryAt,
+          deliveryStartAt: order.deliveryStartAt,
           items: order.items,
         }
       : null;
