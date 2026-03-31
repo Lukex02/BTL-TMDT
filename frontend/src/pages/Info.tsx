@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuthUser, clearAuthUser } from "../services/auth.service";
 import Navbar from "../components/Navbar";
@@ -21,13 +21,24 @@ const sellProducts = [
 export default function Info() {
   const navigate = useNavigate();
   const user = getAuthUser();
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, user]);
+
+  if (!user) {
+    return null;
+  }
+
   const [activeTab, setActiveTab] = useState("overview");
 
   // State và Ref cho phần tải ảnh
   const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const profile = user || { username: "Nguyễn Thành", role: "Premium Member" };
+  const profile = user;
 
   const handleLogout = () => {
     clearAuthUser();

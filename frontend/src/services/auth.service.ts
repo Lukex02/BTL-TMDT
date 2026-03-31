@@ -31,6 +31,11 @@ export async function login(payload: LoginPayload): Promise<AuthUser> {
   return response.data;
 }
 
+export async function getAllUsers(): Promise<AuthUser[]> {
+  const response = await axios.get(`http://localhost:3000/user/all`);
+  return response.data;
+}
+
 export async function register(payload: RegisterPayload): Promise<AuthUser> {
   const response = await axios.post(`${AUTH_API}/register`, payload);
   return response.data;
