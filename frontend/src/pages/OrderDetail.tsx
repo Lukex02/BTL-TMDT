@@ -8,12 +8,21 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 const OrderDetail: React.FC = () => {
+  // ==========================================
+  // 1. KHỞI TẠO STATE & HOOKS
+  // ==========================================
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // ==========================================
+  // 2. CÁC HÀM TIỆN ÍCH (HELPERS)
+  // ==========================================
+  
+  // Format tiền tệ VNĐ
   const formatCurrency = (amount: number) => amount.toLocaleString('vi-VN') + 'đ';
 
+  // Format thời gian an toàn (Xử lý chuỗi ISO hoặc Date thông thường)
   const formatDT = (dateStr: any, formatStr: string) => {
     if (!dateStr) return "---";
     let date = parseISO(dateStr);
@@ -21,23 +30,72 @@ const OrderDetail: React.FC = () => {
     return isValid(date) ? format(date, formatStr, { locale: vi }) : "---";
   };
 
+  // Cấu hình hiển thị Trạng thái đơn hàng (Label & Màu sắc)
   const getStatusConfig = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'pending': 
-        return { label: 'Chờ xử lý', color: '!text-yellow-600' };
-      case 'processing': 
-        return { label: 'Đang xử lý', color: '!text-blue-600' };
       case 'completed': 
       case 'delivered': 
         return { label: 'Hoàn thành', color: '!text-green-600' };
       case 'cancelled': 
         return { label: 'Đã hủy', color: '!text-red-600' };
+      case 'pending': 
+        return { label: 'Chờ xử lý', color: '!text-yellow-600' };
+      case 'processing': 
+        return { label: 'Đang xử lý', color: '!text-yellow-600' };
       default: 
-        return { label: status || 'Chờ xử lý', color: '!text-gray-500' };
+        // Bất kỳ trạng thái nào khác ngoại trừ Xanh/Đỏ ở trên đều mặc định về màu Vàng
+        return { label: status || 'Đang xử lý', color: '!text-yellow-600' };
     }
   };
 
-  useEffect(() => {
+const generateTimeline = (status: string, createdAt: string, updatedAt: string) => {
+    const s = status?.toLowerCase();
+    const baseTime = createdAt || new Date().toISOString();
+    // Nếu cập nhật trạng thái, dùng updatedAt. Nếu chưa, dùng tạm thời gian hiện tại
+    const updateTime = updatedAt || new Date().toISOString(); 
+
+    // Mốc 1: Luôn luôn có ở mọi đơn hàng (Nằm ở cuối mảng)
+    const baseEvent = {
+      time: baseTime,
+      content: "Đặt hàng thành công",
+      description: "Hệ thống đã ghi nhận đơn đặt hàng của bạn."
+    };
+
+    // Tạo mảng động theo trạng thái (Push thêm vào đầu mảng bằng unshift để mốc mới nhất nằm trên cùng)
+    let events = [baseEvent];
+
+    if (s === 'cancelled') {
+      events.unshift({
+        time: updateTime,
+        content: "Đã hủy đơn hàng",
+        description: "Đơn hàng của bạn đã bị hủy."
+      });
+      return events;
+    }
+
+    if (s === 'processing' || s === 'completed' || s === 'delivered') {
+      events.unshift({
+        time: s === 'processing' ? updateTime : baseTime, // Nếu đã complete, mốc này lùi lại bằng baseTime
+        content: "Đang chuẩn bị hàng",
+        description: "Người bán đang đóng gói và giao cho đơn vị vận chuyển."
+      });
+    }
+
+    if (s === 'completed' || s === 'delivered') {
+      events.unshift({
+        time: updateTime,
+        content: "Giao hàng thành công",
+        description: "Đơn hàng đã được giao đến địa chỉ của bạn."
+      });
+    }
+
+    return events;
+  };
+
+  // ==========================================
+  // 3. XỬ LÝ LẤY DỮ LIỆU TỪ API
+  // ==========================================
+useEffect(() => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
@@ -52,16 +110,19 @@ const OrderDetail: React.FC = () => {
         const data = await response.json();
 
         const createdAt = data.createdAt || new Date().toISOString();
+        const updatedAt = data.updatedAt || createdAt;
+        const currentStatus = data.status || 'pending';
         
         setOrder({
           ...data,
           createdAt,
           shippingFee: data.shipFee !== null ? data.shipFee : 120000,
           paymentMethod: data.paymentMethod || "Thanh toán Online",
-          timeline: [
-            { time: createdAt, content: "Đơn hàng thành công", description: "Hệ thống đã ghi nhận đơn đặt hàng" },
-            { time: createdAt, content: "Hàng đặt trên web", description: "" }
-          ]
+          
+          // 🌟 Áp dụng hàm sinh Timeline vào đây
+          timeline: data.timeline && data.timeline.length > 0 
+            ? data.timeline // Ưu tiên timeline thật từ BE nếu có
+            : generateTimeline(currentStatus, createdAt, updatedAt) // Nếu BE chưa có, FE tự render
         });
       } catch (error) {
         console.error("Fetch error:", error);
@@ -72,10 +133,18 @@ const OrderDetail: React.FC = () => {
     if (id) fetchOrder();
   }, [id]);
 
+  // ==========================================
+  // 4. RENDER UI
+  // ==========================================
+
+  // Hiển thị trạng thái Loading hoặc Lỗi
   if (loading) return <div className="min-h-screen flex items-center justify-center">Đang tải dữ liệu...</div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center">Không tìm thấy đơn hàng</div>;
 
+  // Tính toán tổng tiền sản phẩm (Subtotal)
   const subTotal = order.items?.reduce((acc: number, item: any) => acc + (item.unitPrice * item.quantity), 0) || 0;
+  
+  // Lấy cấu hình trạng thái hiện tại của đơn hàng
   const statusConfig = getStatusConfig(order.status);
 
   return (
@@ -84,6 +153,7 @@ const OrderDetail: React.FC = () => {
       <main className="w-full bg-gray-50 pb-16 pt-8 text-left !text-gray-900 min-h-screen font-sans">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           
+          {/* --- KHU VỰC HEADER: Nút quay lại, Mã đơn, Trạng thái --- */}
           <div className="mb-8 border-b border-gray-100 pb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex items-center gap-4">
@@ -109,9 +179,13 @@ const OrderDetail: React.FC = () => {
             </div>
           </div>
 
+          {/* --- KHU VỰC NỘI DUNG CHÍNH --- */}
           <div className="flex flex-col lg:flex-row gap-8 items-start">
+            
+            {/* CỘT TRÁI (2/3): Thông tin chi tiết đơn hàng */}
             <div className="w-full lg:w-2/3 space-y-8">
               
+              {/* Card 1: Bảng danh sách sản phẩm */}
               <section className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2.5 bg-blue-50 rounded-lg"><Package className="w-5 h-5 !text-blue-600" /></div>
@@ -146,6 +220,7 @@ const OrderDetail: React.FC = () => {
                 </div>
               </section>
 
+              {/* Card 2: Thông tin thanh toán (Tạm tính, Phí ship, Tổng cộng) */}
               <section className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm">
                 <div className="flex items-center gap-3 mb-6 text-blue-600">
                   <div className="p-2.5 bg-blue-50 rounded-lg"><CreditCard className="w-5 h-5" /></div>
@@ -167,6 +242,7 @@ const OrderDetail: React.FC = () => {
                 </div>
               </section>
 
+              {/* Card 3: Dòng thời gian đơn hàng (Timeline) */}
               <section className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm overflow-hidden">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="p-2.5 bg-blue-50 rounded-lg"><Clock className="w-5 h-5 !text-blue-600" /></div>
@@ -199,6 +275,7 @@ const OrderDetail: React.FC = () => {
               </section>
             </div>
 
+            {/* CỘT PHẢI (1/3): Thông tin khách hàng & Giao hàng */}
             <aside className="w-full lg:w-1/3 sticky top-24">
               <div className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm space-y-8">
                 <div>
@@ -215,10 +292,6 @@ const OrderDetail: React.FC = () => {
                     <div className="flex justify-between items-center border-b border-gray-100 pb-3.5">
                       <span className="!text-blue-600 text-base">Sđt:</span>
                       <span className="font-semibold text-base">{order.phone || "(Chưa có số)"}</span>
-                    </div>
-                    <div className="flex justify-between items-center border-b border-gray-100 pb-3.5">
-                      <span className="!text-blue-600 text-base">Email:</span>
-                      <span className="font-semibold text-base">{order.user?.email || "(Trống)"}</span>
                     </div>
                     <div className="flex justify-between items-center border-b border-gray-100 pb-3.5">
                       <span className="!text-blue-600 text-base">Địa chỉ:</span>
