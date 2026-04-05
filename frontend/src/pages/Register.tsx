@@ -1,28 +1,53 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import type { FormEvent } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { register, saveAuthUser, getAuthUser } from "../services/auth.service";
 
 export default function Register() {
   const [fullname, setFullname] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const existing = getAuthUser();
+    if (existing) {
+      navigate("/info");
+    }
+  }, [navigate]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agree, setAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    setError("");
+
     if (!agree) {
-      alert("Vui lòng đồng ý điều khoản dịch vụ và chính sách bảo mật");
+      setError("Vui lòng đồng ý điều khoản dịch vụ và chính sách bảo mật");
       return;
     }
     if (password !== confirmPassword) {
-      alert("Mật khẩu xác nhận không khớp");
+      setError("Mật khẩu xác nhận không khớp");
       return;
     }
-    console.log("register", { fullname, email, password });
-    alert("Đăng ký thành công (giả lập)");
+
+    setLoading(true);
+    try {
+      const username = fullname.trim() || email.split("@")[0];
+      const user = await register({ email, password, username, role: "customer" });
+      saveAuthUser(user);
+      alert("Đăng ký thành công");
+      navigate("/");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || "Đăng ký thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,8 +97,10 @@ export default function Register() {
             </span>
           </label>
 
-          <button className="auth-submit" type="submit">
-            Đăng ký
+          {error && <p className="auth-error">{error}</p>}
+
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? "Đang tạo tài khoản..." : "Đăng ký"}
           </button>
         </form>
 

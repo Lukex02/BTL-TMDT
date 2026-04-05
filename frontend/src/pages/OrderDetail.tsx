@@ -19,10 +19,8 @@ const OrderDetail: React.FC = () => {
   // 2. CÁC HÀM TIỆN ÍCH (HELPERS)
   // ==========================================
   
-  // Format tiền tệ VNĐ
   const formatCurrency = (amount: number) => amount.toLocaleString('vi-VN') + 'đ';
 
-  // Format thời gian an toàn (Xử lý chuỗi ISO hoặc Date thông thường)
   const formatDT = (dateStr: any, formatStr: string) => {
     if (!dateStr) return "---";
     let date = parseISO(dateStr);
@@ -30,72 +28,71 @@ const OrderDetail: React.FC = () => {
     return isValid(date) ? format(date, formatStr, { locale: vi }) : "---";
   };
 
-  // Cấu hình hiển thị Trạng thái đơn hàng (Label & Màu sắc)
+  // Đồng bộ cấu hình hiển thị với 4 trạng thái chuẩn
   const getStatusConfig = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'completed': 
-      case 'delivered': 
-        return { label: 'Hoàn thành', color: '!text-green-600' };
-      case 'cancelled': 
+      case 'shipped': 
+        return { label: 'Đã giao hàng', color: '!text-green-600' };
+      case 'canceled': 
         return { label: 'Đã hủy', color: '!text-red-600' };
-      case 'pending': 
-        return { label: 'Chờ xử lý', color: '!text-yellow-600' };
       case 'processing': 
         return { label: 'Đang xử lý', color: '!text-yellow-600' };
+      case 'pending': 
       default: 
-        // Bất kỳ trạng thái nào khác ngoại trừ Xanh/Đỏ ở trên đều mặc định về màu Vàng
-        return { label: status || 'Đang xử lý', color: '!text-yellow-600' };
+        return { label: 'Chờ xử lý', color: '!text-yellow-600' };
     }
   };
 
-const generateTimeline = (status: string, createdAt: string, updatedAt: string) => {
-    const s = status?.toLowerCase();
-    const baseTime = createdAt || new Date().toISOString();
-    // Nếu cập nhật trạng thái, dùng updatedAt. Nếu chưa, dùng tạm thời gian hiện tại
-    const updateTime = updatedAt || new Date().toISOString(); 
+  // Logic sinh Timeline dựa trên 4 trường thời gian và 4 trạng thái
+  const generateTimeline = (orderData: any) => {
+    const events = [];
+    const status = orderData.status?.toLowerCase();
+    
+    // Fallback an toàn nếu thiếu thời gian
+    const fallbackTime = orderData.updatedAt || orderData.createdAt || new Date().toISOString();
 
-    // Mốc 1: Luôn luôn có ở mọi đơn hàng (Nằm ở cuối mảng)
-    const baseEvent = {
-      time: baseTime,
+    // 1. Mốc Đặt hàng (Tương ứng: pending -> createdAt)
+    events.push({
+      time: orderData.createdAt || new Date().toISOString(),
       content: "Đặt hàng thành công",
       description: "Hệ thống đã ghi nhận đơn đặt hàng của bạn."
-    };
+    });
 
-    // Tạo mảng động theo trạng thái (Push thêm vào đầu mảng bằng unshift để mốc mới nhất nằm trên cùng)
-    let events = [baseEvent];
-
-    if (s === 'cancelled') {
-      events.unshift({
-        time: updateTime,
-        content: "Đã hủy đơn hàng",
-        description: "Đơn hàng của bạn đã bị hủy."
-      });
-      return events;
-    }
-
-    if (s === 'processing' || s === 'completed' || s === 'delivered') {
-      events.unshift({
-        time: s === 'processing' ? updateTime : baseTime, // Nếu đã complete, mốc này lùi lại bằng baseTime
+    // 2. Mốc Đang xử lý (Tương ứng: processing -> processedAt)
+    if (orderData.processedAt || status === 'processing' || status === 'shipped') {
+      events.push({
+        time: orderData.processedAt || (status === 'processing' ? fallbackTime : orderData.createdAt),
         content: "Đang chuẩn bị hàng",
         description: "Người bán đang đóng gói và giao cho đơn vị vận chuyển."
       });
     }
 
-    if (s === 'completed' || s === 'delivered') {
-      events.unshift({
-        time: updateTime,
+    // 3. Mốc Đã giao (Tương ứng: shipped -> deliveredAt)
+    if (orderData.deliveredAt || status === 'shipped') {
+      events.push({
+        time: orderData.deliveredAt || fallbackTime,
         content: "Giao hàng thành công",
         description: "Đơn hàng đã được giao đến địa chỉ của bạn."
       });
     }
 
-    return events;
+    // 4. Mốc Đã hủy (Tương ứng: canceled -> canceledAt)
+    if (orderData.canceledAt || status === 'canceled') {
+      events.push({
+        time: orderData.canceledAt || fallbackTime,
+        content: "Đã hủy đơn hàng",
+        description: "Đơn hàng của bạn đã bị hủy."
+      });
+    }
+
+    // Sắp xếp giảm dần (Mới nhất nằm trên cùng để chấm index 0 luôn có màu xanh lá)
+    return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
   };
 
   // ==========================================
   // 3. XỬ LÝ LẤY DỮ LIỆU TỪ API
   // ==========================================
-useEffect(() => {
+  useEffect(() => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
@@ -110,19 +107,13 @@ useEffect(() => {
         const data = await response.json();
 
         const createdAt = data.createdAt || new Date().toISOString();
-        const updatedAt = data.updatedAt || createdAt;
-        const currentStatus = data.status || 'pending';
         
         setOrder({
           ...data,
           createdAt,
-          shippingFee: data.shipFee !== null ? data.shipFee : 120000,
+          shippingFee: data.shipFee !== null && data.shipFee !== undefined ? data.shipFee : 120000,
           paymentMethod: data.paymentMethod || "Thanh toán Online",
-          
-          // 🌟 Áp dụng hàm sinh Timeline vào đây
-          timeline: data.timeline && data.timeline.length > 0 
-            ? data.timeline // Ưu tiên timeline thật từ BE nếu có
-            : generateTimeline(currentStatus, createdAt, updatedAt) // Nếu BE chưa có, FE tự render
+          timeline: generateTimeline(data)
         });
       } catch (error) {
         console.error("Fetch error:", error);
@@ -137,14 +128,10 @@ useEffect(() => {
   // 4. RENDER UI
   // ==========================================
 
-  // Hiển thị trạng thái Loading hoặc Lỗi
   if (loading) return <div className="min-h-screen flex items-center justify-center">Đang tải dữ liệu...</div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center">Không tìm thấy đơn hàng</div>;
 
-  // Tính toán tổng tiền sản phẩm (Subtotal)
   const subTotal = order.items?.reduce((acc: number, item: any) => acc + (item.unitPrice * item.quantity), 0) || 0;
-  
-  // Lấy cấu hình trạng thái hiện tại của đơn hàng
   const statusConfig = getStatusConfig(order.status);
 
   return (
@@ -153,7 +140,7 @@ useEffect(() => {
       <main className="w-full bg-gray-50 pb-16 pt-8 text-left !text-gray-900 min-h-screen font-sans">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           
-          {/* --- KHU VỰC HEADER: Nút quay lại, Mã đơn, Trạng thái --- */}
+          {/* --- KHU VỰC HEADER --- */}
           <div className="mb-8 border-b border-gray-100 pb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex items-center gap-4">
@@ -182,10 +169,9 @@ useEffect(() => {
           {/* --- KHU VỰC NỘI DUNG CHÍNH --- */}
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             
-            {/* CỘT TRÁI (2/3): Thông tin chi tiết đơn hàng */}
+            {/* CỘT TRÁI (2/3) */}
             <div className="w-full lg:w-2/3 space-y-8">
               
-              {/* Card 1: Bảng danh sách sản phẩm */}
               <section className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2.5 bg-blue-50 rounded-lg"><Package className="w-5 h-5 !text-blue-600" /></div>
@@ -220,7 +206,6 @@ useEffect(() => {
                 </div>
               </section>
 
-              {/* Card 2: Thông tin thanh toán (Tạm tính, Phí ship, Tổng cộng) */}
               <section className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm">
                 <div className="flex items-center gap-3 mb-6 text-blue-600">
                   <div className="p-2.5 bg-blue-50 rounded-lg"><CreditCard className="w-5 h-5" /></div>
@@ -242,7 +227,6 @@ useEffect(() => {
                 </div>
               </section>
 
-              {/* Card 3: Dòng thời gian đơn hàng (Timeline) */}
               <section className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm overflow-hidden">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="p-2.5 bg-blue-50 rounded-lg"><Clock className="w-5 h-5 !text-blue-600" /></div>
@@ -275,7 +259,7 @@ useEffect(() => {
               </section>
             </div>
 
-            {/* CỘT PHẢI (1/3): Thông tin khách hàng & Giao hàng */}
+            {/* CỘT PHẢI (1/3) */}
             <aside className="w-full lg:w-1/3 sticky top-24">
               <div className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm space-y-8">
                 <div>
