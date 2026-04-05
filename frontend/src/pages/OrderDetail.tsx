@@ -43,7 +43,7 @@ const OrderDetail: React.FC = () => {
     }
   };
 
-  // Logic sinh Timeline dựa trên 4 trường thời gian và 4 trạng thái
+// Logic sinh Timeline dựa trên 4 trường thời gian, 4 trạng thái và TRỌNG SỐ LOGIC
   const generateTimeline = (orderData: any) => {
     const events = [];
     const status = orderData.status?.toLowerCase();
@@ -51,42 +51,54 @@ const OrderDetail: React.FC = () => {
     // Fallback an toàn nếu thiếu thời gian
     const fallbackTime = orderData.updatedAt || orderData.createdAt || new Date().toISOString();
 
-    // 1. Mốc Đặt hàng (Tương ứng: pending -> createdAt)
+    // 1. Mốc Đặt hàng (Trọng số: 1)
     events.push({
+      step: 1,
       time: orderData.createdAt || new Date().toISOString(),
       content: "Đặt hàng thành công",
       description: "Hệ thống đã ghi nhận đơn đặt hàng của bạn."
     });
 
-    // 2. Mốc Đang xử lý (Tương ứng: processing -> processedAt)
+    // 2. Mốc Đang xử lý (Trọng số: 2)
     if (orderData.processedAt || status === 'processing' || status === 'shipped') {
       events.push({
+        step: 2,
         time: orderData.processedAt || (status === 'processing' ? fallbackTime : orderData.createdAt),
         content: "Đang chuẩn bị hàng",
         description: "Người bán đang đóng gói và giao cho đơn vị vận chuyển."
       });
     }
 
-    // 3. Mốc Đã giao (Tương ứng: shipped -> deliveredAt)
+    // 3. Mốc Đã giao (Trọng số: 3)
     if (orderData.deliveredAt || status === 'shipped') {
       events.push({
+        step: 3,
         time: orderData.deliveredAt || fallbackTime,
         content: "Giao hàng thành công",
         description: "Đơn hàng đã được giao đến địa chỉ của bạn."
       });
     }
 
-    // 4. Mốc Đã hủy (Tương ứng: canceled -> canceledAt)
+    // 4. Mốc Đã hủy (Trọng số: 4)
     if (orderData.canceledAt || status === 'canceled') {
       events.push({
+        step: 4,
         time: orderData.canceledAt || fallbackTime,
         content: "Đã hủy đơn hàng",
         description: "Đơn hàng của bạn đã bị hủy."
       });
     }
 
-    // Sắp xếp giảm dần (Mới nhất nằm trên cùng để chấm index 0 luôn có màu xanh lá)
-    return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+    // SẮP XẾP THÔNG MINH: 
+    // Ưu tiên 1: Thời gian mới nhất xếp lên trên
+    // Ưu tiên 2: Nếu thời gian bằng nhau, bước nào logic diễn ra sau (step lớn hơn) sẽ xếp lên trên
+    return events.sort((a, b) => {
+      const timeDiff = new Date(b.time).getTime() - new Date(a.time).getTime();
+      if (timeDiff === 0) {
+        return b.step - a.step;
+      }
+      return timeDiff;
+    });
   };
 
   // ==========================================
