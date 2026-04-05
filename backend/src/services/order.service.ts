@@ -21,8 +21,9 @@ export class OrderService implements IOrderService {
     address,
     createdAt:created_at,
     updatedAt:updated_at,
-    deliveryAt:delivery_at,
-    deliveryStartAt:delivery_start_at,
+    deliveredAt:delivered_at,
+    processedAt:processed_at,
+    canceledAt:canceled_at,
     shipFee:ship_fee,
     buyer:User (
       id,
@@ -187,8 +188,10 @@ export class OrderService implements IOrderService {
           shipFee: order.shipFee,
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
-          deliveryAt: order.deliveryAt,
+          deliveredAt: order.deliveredAt,
           deliveryStartAt: order.deliveryStartAt,
+          processedAt: order.processedAt,
+          canceledAt: order.canceledAt,
           items: order.items,
         }
       : null;
