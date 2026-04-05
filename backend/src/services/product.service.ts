@@ -65,6 +65,7 @@ export class ProductService implements IProductService {
           seller: product.seller,
           category: product.category,
           attributes: product.attributes,
+          images: product.images,
           status: product.status,
           price: product.price,
           stock: product.stock,
@@ -141,7 +142,7 @@ export class ProductService implements IProductService {
     }
     return products
       .map((product: any) => this.mapToProduct(product))
-      .filter((product: Product) => product !== null);
+      .filter((product): product is Product => product !== null);
   }
 
   async getProductById(productId: number) {
@@ -189,7 +190,7 @@ export class ProductService implements IProductService {
 
     return data
       .map((product: any) => this.mapToProduct(product))
-      .filter((product: Product) => product !== null);
+      .filter((product): product is Product => product !== null);
   }
 
   async createProduct(create: ProductDto) {
@@ -203,20 +204,38 @@ export class ProductService implements IProductService {
   }
 
   async updateProduct(update: ProductDto) {
-    const { data, error } = await this.supabase
+    const { data:products, error:productErr } = await this.supabase
       .from('Product')
       .update({
         ...this.mapProductDtoToDb(update),
-        updated_at: new Date().toISOString(),
       })
       .eq('id', update.id)
       .select();
-    if (error) {
-      throw new BadRequestException(error.message);
+    if (productErr) {
+      throw new BadRequestException(productErr.message);
     }
-    if (data.length === 0) {
+    if (products.length === 0) {
       throw new NotFoundException('Product not found');
     }
+
+    const { error: deleteError } = await this.supabase
+      .from('ProductImage')
+      .delete()
+      .eq('product_id', update.id);
+
+    if (deleteError) throw deleteError;
+
+    const imagesData = update?.images?.map((img: any) => ({
+      product_id: update.id,
+      url: img.url,
+    }));
+
+    const { error: insertError } = await this.supabase
+      .from('ProductImage')
+      .insert(imagesData);
+
+    if (insertError) throw insertError;
+
     return { message: 'Product updated successfully' };
   }
 
@@ -241,7 +260,7 @@ export class ProductService implements IProductService {
     }
     return categories
       .map((category: any) => this.mapToCategoryDto(category))
-      .filter((category: CategoryDto) => category !== null);
+      .filter((category): category is CategoryDto => category !== null);
   }
 
   async createCategory(create: CategoryDto) {

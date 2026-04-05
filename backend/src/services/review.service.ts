@@ -49,7 +49,7 @@ export class ReviewService implements IReviewService {
     }
     return data
       .map((review: any) => this.mapToReview(review))
-      .filter((review: Review) => review !== null);
+      .filter((review): review is Review => review !== null);
   }
 
   async getByProductId(productId: number) {
@@ -63,7 +63,7 @@ export class ReviewService implements IReviewService {
     }
     return data
       .map((review: any) => this.mapToReview(review))
-      .filter((review: Review) => review !== null);
+      .filter((review): review is Review => review !== null);
   }
 
   async createReview(create: ReviewDto) {
