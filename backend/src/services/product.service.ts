@@ -121,7 +121,6 @@ export class ProductService implements IProductService {
 
   private mapProductDtoToDb(product: ProductDto) {
     return {
-      seller_id: product.seller.id,
       category_id: product.category?.id,
       name: product.name,
       description: product.description,
@@ -246,6 +245,16 @@ export class ProductService implements IProductService {
       .eq('id', productId);
     if (error) {
       throw new BadRequestException(error.message);
+    }
+    const { data: deleted, error: checkErr } = await this.supabase
+      .from('Product')
+      .select()
+      .eq('id', productId);
+    if (checkErr) {
+      throw new BadRequestException(checkErr.message);
+    }
+    if (deleted.length > 0) {
+      throw new BadRequestException('Product is not deleted');
     }
     return { message: 'Product deleted successfully' };
   }
