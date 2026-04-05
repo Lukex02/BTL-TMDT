@@ -39,7 +39,6 @@ export default function Login() {
       } catch (innerErr: any) {
         const innerMsg = innerErr?.response?.data?.message || innerErr?.message || "Đăng nhập thất bại";
 
-        // Nếu lỗi do backend `.single()` vì username không trùng, thử tìm username từ `email`
         if (innerMsg.includes("Cannot coerce") || innerMsg.includes("User not found")) {
           try {
             const users = await getAllUsers();
@@ -55,7 +54,6 @@ export default function Login() {
               return;
             }
           } catch (userFetchErr) {
-            // Không thành công khi lấy user, sẽ hiển thị lỗi chung phía dưới
           }
         }
 

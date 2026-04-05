@@ -1,15 +1,72 @@
-// src/pages/ProductDetail.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { getProductById } from "../services/product.service";
 import { mockProducts } from "../services/mockproduct";
+import type { Product } from "../types/product";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isFromMock, setIsFromMock] = useState(false);
 
-  const product = mockProducts.find((p) => p.id === id);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      try {
+        const productId = parseInt(id, 10);
+        if (isNaN(productId)) {
+          throw new Error("ID sản phẩm không hợp lệ");
+        }
+        const data = await getProductById(productId);
+        setProduct(data);
+        setIsFromMock(false);
+      } catch (err) {
+        console.error("API failed, using mock data:", err);
+        // Fallback to mock data
+        const mockProduct = mockProducts.find((p) => p.id === parseInt(id, 10));
+        if (mockProduct) {
+          setProduct(mockProduct);
+          setIsFromMock(true);
+          setError("Sử dụng dữ liệu mẫu vì API không khả dụng");
+        } else {
+          setError("Không tìm thấy sản phẩm trong API và dữ liệu mẫu");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ padding: "100px", textAlign: "center" }}>
+          <h2>Đang tải...</h2>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error && !product) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ padding: "100px", textAlign: "center" }}>
+          <h2>{error}</h2>
+          <Link to="/">Quay về trang chủ</Link>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   if (!product) {
     return (
@@ -24,26 +81,42 @@ export default function ProductDetail() {
     );
   }
 
+  const mainImage = product.images && product.images.length > 0 ? product.images[0].url : (isFromMock ? (product as any).image : null);
+
   return (
     <>
       <Navbar />
 
+      {isFromMock && (
+        <div style={{ background: '#fff3cd', color: '#856404', padding: '10px', textAlign: 'center' }}>
+          <strong>Lưu ý:</strong> Đang hiển thị dữ liệu mẫu vì API backend chưa khả dụng hoặc có lỗi.
+        </div>
+      )}
+
       <div className="product-detail-page">
         <div className="breadcrumb">
-          <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>Trang chủ</Link> / <span>Máy tính & Laptop</span> / <span className="active">{product.name}</span>
+          <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>Trang chủ</Link> / <span>{product.category ? product.category.name : "Thiếu thông tin: category"}</span> / <span className="active">{product.name}</span>
         </div>
 
         <div className="detail-main">
           <div className="detail-gallery">
             <div className="main-img-box">
-              <img src={product.image} alt={product.name} />
+              {mainImage ? (
+                <img src={mainImage} alt={product.name} />
+              ) : (
+                <div>Thiếu thông tin: images</div>
+              )}
             </div>
             <div className="thumb-list">
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="thumb-item">
-                  <img src={product.image} alt={`thumb-${item}`} />
-                </div>
-              ))}
+              {product.images && product.images.length > 1 ? (
+                product.images.slice(1, 5).map((img, index) => (
+                  <div key={index} className="thumb-item">
+                    <img src={img.url} alt={`thumb-${index}`} />
+                  </div>
+                ))
+              ) : (
+                <div>Thiếu thông tin: additional images</div>
+              )}
             </div>
           </div>
 
@@ -51,7 +124,7 @@ export default function ProductDetail() {
             <h1 className="detail-title">{product.name}</h1>
             
             <div className="detail-rating">
-              ★★★★★ <span>(132 đánh giá)</span>
+              ★★★★★ <span>(Thiếu thông tin: reviews)</span>
             </div>
 
             <div className="detail-price">
@@ -59,11 +132,11 @@ export default function ProductDetail() {
             </div>
             
             <div className="detail-stock">
-              • Còn hàng (3 sản phẩm)
+              • {product.status === 'active' ? `Còn hàng (${product.stock} sản phẩm)` : `Hết hàng (status: ${product.status})`}
             </div>
 
             <div className="detail-short-desc">
-              <strong>Thông tin sản phẩm:</strong> Máy tính để bàn chơi game. Cấu hình mạnh mẽ, lý tưởng cho các tác vụ đòi hỏi cao, hoàn hảo để hiển thị hình ảnh chất lượng cao trong trò chơi và video.
+              <strong>Thông tin sản phẩm:</strong> {product.description || "Thiếu thông tin: description"}
             </div>
 
             <div className="detail-cert">
@@ -86,9 +159,20 @@ export default function ProductDetail() {
             </div>
 
             <div className="detail-meta">
-              <p><strong>SKU:</strong> {product.id.toUpperCase()}-001</p>
-              <p><strong>Bảo hành:</strong> 2 năm</p>
+              <p><strong>SKU:</strong> {product.id}-001</p>
+              <p><strong>Bảo hành:</strong> Thiếu thông tin: warranty</p>
               <p><strong>Vận chuyển:</strong> Miễn phí (1-3 ngày làm việc)</p>
+              {product.attributes && product.attributes.length > 0 && (
+                <div>
+                  <strong>Thuộc tính:</strong>
+                  <ul>
+                    {product.attributes.map((attr, index) => (
+                      <li key={index}>{attr.attributeName}: {attr.attributeValue}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {!product.attributes && <p>Thiếu thông tin: attributes</p>}
             </div>
           </div>
         </div>
@@ -96,19 +180,19 @@ export default function ProductDetail() {
         <section className="section-block">
           <h3 className="section-title">Thông tin người bán</h3>
           <div className="seller-box">
-            <div className="seller-avatar">N</div>
+            <div className="seller-avatar">{product.seller.username.charAt(0).toUpperCase()}</div>
             <div className="seller-info-main">
-              <h4>Nguyễn Văn A <span style={{ color: '#3b82f6' }}>🛡️</span></h4>
+              <h4>{product.seller.username} <span style={{ color: '#3b82f6' }}>🛡️</span></h4>
               <div className="seller-buttons">
                 <button className="btn-view-shop">Xem Shop</button>
                 <button className="btn-follow">Theo dõi</button>
               </div>
             </div>
             <div className="seller-stats">
-              <div className="stat-item">Đánh giá <strong>4.7k</strong></div>
-              <div className="stat-item">Sản phẩm <strong>36</strong></div>
-              <div className="stat-item">Tham gia <strong>7 năm trước</strong></div>
-              <div className="stat-item">Số lượng theo dõi <strong>3k</strong></div>
+              <div className="stat-item">Đánh giá <strong>Thiếu thông tin: seller reviews</strong></div>
+              <div className="stat-item">Sản phẩm <strong>Thiếu thông tin: seller products</strong></div>
+              <div className="stat-item">Tham gia <strong>{product.createdAt ? new Date(product.createdAt).getFullYear() : "Thiếu thông tin: createdAt"} năm trước</strong></div>
+              <div className="stat-item">Số lượng theo dõi <strong>Thiếu thông tin: followers</strong></div>
             </div>
           </div>
         </section>
@@ -116,7 +200,7 @@ export default function ProductDetail() {
         <section className="section-block">
           <h3 className="section-title">Mô tả sản phẩm</h3>
           <div className="desc-content">
-            Máy tính này sử dụng hệ điều hành Windows 11, kết hợp sức mạnh và tính bảo mật của Windows 10 với giao diện và trải nghiệm được làm mới, tích hợp các công cụ, âm thanh và ứng dụng mới để mang lại trải nghiệm hoàn toàn được nâng cao. Máy được trang bị bộ xử lý hiệu năng cao với tám lõi và tám luồng, lý tưởng cho các tác vụ đòi hỏi cao. Nó bao gồm card đồ họa chuyên dụng, hoàn hảo để hiển thị hình ảnh chất lượng cao trong trò chơi và video. RAM DDR4 băng thông cao cho phép đa nhiệm liên tục, mạnh mẽ, lý tưởng cho các trò chơi đòi hỏi cấu hình cao, chỉnh sửa video và chạy nhiều ứng dụng cùng lúc. Ngoài ra, nó còn bao gồm ổ cứng SSD đảm bảo thời gian khởi động nhanh và truy cập dữ liệu nhanh chóng.
+            {product.description || "Thiếu thông tin: description"}
           </div>
         </section>
 
@@ -124,31 +208,19 @@ export default function ProductDetail() {
           <h3 className="section-title">Đánh giá</h3>
           <div className="review-box">
             <div className="review-header">
-              <span>★★★★★</span> 5.0/5.0 (4 đánh giá)
+              <span>★★★★★</span> Thiếu thông tin: rating (Thiếu thông tin: reviews)
             </div>
             <div className="review-filter">
               Tích cực nhất ↓
             </div>
             
             <div className="review-list">
-              {[1, 2].map((item) => (
-                <div key={item} className="review-item">
-                  <div className="reviewer-avatar">
-                    <img src={`https://ui-avatars.com/api/?name=User+${item}&background=random`} alt="user" />
-                  </div>
-                  <div className="review-content">
-                    <h5>Người dùng {item} <span className="stars">★★★★★</span></h5>
-                    <div className="date">2023-10-15 10:10</div>
-                    <p>Sản phẩm chất lượng!</p>
-                  </div>
-                </div>
-              ))}
+              <div>Thiếu thông tin: reviews</div>
             </div>
 
             <div className="pagination">
               <button>&lt;</button>
               <button className="active">1</button>
-              <button>2</button>
               <button>&gt;</button>
             </div>
           </div>

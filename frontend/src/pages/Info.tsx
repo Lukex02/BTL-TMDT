@@ -34,7 +34,6 @@ export default function Info() {
 
   const [activeTab, setActiveTab] = useState("overview");
 
-  // State và Ref cho phần tải ảnh
   const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,30 +44,25 @@ export default function Info() {
     navigate("/login");
   };
 
-  // Xử lý khi chọn ảnh
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const newFiles = Array.from(files);
     
-    // Kiểm tra giới hạn 8 ảnh
     if (images.length + newFiles.length > 8) {
       alert("Bạn chỉ được tải lên tối đa 8 ảnh.");
       return;
     }
 
-    // Tạo URL xem trước cho ảnh
     const newImageUrls = newFiles.map((file) => URL.createObjectURL(file));
     setImages((prevImages) => [...prevImages, ...newImageUrls]);
     
-    // Reset input để có thể chọn lại cùng 1 ảnh nếu cần
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  // Xử lý xóa ảnh đã chọn
   const handleRemoveImage = (indexToRemove: number) => {
     setImages((prevImages) => prevImages.filter((_, index) => index !== indexToRemove));
   };
