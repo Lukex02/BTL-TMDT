@@ -29,7 +29,7 @@ a {
 }
 
 .banner-btn, .product-card-btn, .subscribe button, 
-.auth-submit, .add-to-cart-btn, .btn-follow {
+.auth-submit, .add-to-cart-btn, .btn-follow, .support-btn {
   background-color: var(--primary);
   color: white;
   border: none;
@@ -38,7 +38,7 @@ a {
   transition: background-color 0.2s;
 }
 .banner-btn:hover, .product-card-btn:hover, .subscribe button:hover, 
-.auth-submit:hover, .add-to-cart-btn:hover, .btn-follow:hover {
+.auth-submit:hover, .add-to-cart-btn:hover, .btn-follow:hover, .support-btn:hover {
   background-color: var(--primary-hover);
 }
 

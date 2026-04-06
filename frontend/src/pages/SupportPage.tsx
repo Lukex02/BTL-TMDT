@@ -5,10 +5,12 @@ import {
   Store, 
   ShieldCheck, 
   Phone, 
-  Mail,  
+  Mail, 
   ChevronDown, 
   ChevronUp 
 } from 'lucide-react';
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 interface FAQItem {
   question: string;
@@ -42,115 +44,121 @@ const SupportPage: React.FC = () => {
   ];
 
   return (
-    <main className="w-full bg-white pb-16">
-      {/* 1. Hero Section */}
-      <section className="w-full bg-[#232323] text-white py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-sm text-gray-400 mb-2 font-medium">PCity Cares</p>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Trung tâm Hỗ trợ Kỹ thuật</h1>
-          <p className="text-gray-300 mb-8 max-w-2xl">
-            Giải đáp thắc mắc về đơn hàng, quy trình mua bán linh kiện và xử lý khiếu nại.
-          </p>
-          
-          <div className="flex w-full max-w-2xl bg-white rounded-md overflow-hidden">
-            <input 
-              type="text" 
-              placeholder="Nhập từ khóa (Ví dụ: hoàn tiền, lừa đảo, đóng gói...)" 
-              className="flex-1 px-4 py-3 text-gray-800 focus:outline-none"
-            />
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 font-medium transition-colors">
-              Tìm kiếm
-            </button>
-          </div>
-        </div>
-      </section>
+    <>
+      <Navbar />
 
-      {/* 2. Categories Section */}
-      <section className="max-w-5xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
-            <ShoppingCart className="w-10 h-10 mx-auto text-gray-800 mb-4" />
-            <h3 className="font-bold text-gray-900 mb-2">Mua hàng</h3>
-            <p className="text-sm text-gray-600">Theo dõi đơn hàng và các phương thức thanh toán an toàn.</p>
-          </div>
-          <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
-            <RefreshCcw className="w-10 h-10 mx-auto text-gray-800 mb-4" />
-            <h3 className="font-bold text-gray-900 mb-2">Trả hàng & Hoàn tiền</h3>
-            <p className="text-sm text-gray-600">Quy trình xử lý khi linh kiện lỗi hoặc sai mô tả.</p>
-          </div>
-          <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
-            <Store className="w-10 h-10 mx-auto text-gray-800 mb-4" />
-            <h3 className="font-bold text-gray-900 mb-2">Bán hàng</h3>
-            <p className="text-sm text-gray-600">Cách đăng tin chuẩn, định giá đồ cũ và quy chuẩn đóng gói.</p>
-          </div>
-          <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
-            <ShieldCheck className="w-10 h-10 mx-auto text-gray-800 mb-4" />
-            <h3 className="font-bold text-gray-900 mb-2">Tài khoản</h3>
-            <p className="text-sm text-gray-600">Báo cáo gian lận, bảo mật và quản lý thông tin cá nhân.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. FAQ Section */}
-      <section className="max-w-3xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Câu hỏi thường gặp</h2>
-        <p className="text-gray-600 mb-6">Những vấn đề người dùng thường gặp nhất khi giao dịch linh kiện.</p>
-        
-        <div className="space-y-3">
-          {faqs.map((faq, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
-              <button 
-                className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 text-left transition-colors"
-                onClick={() => toggleFaq(index)}
-              >
-                <span className="font-medium text-gray-800">{faq.question}</span>
-                {openFaqIndex === index ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                )}
+      <main className="w-full bg-white pb-16 text-left text-base leading-normal text-gray-900">
+        {/* 1. Hero Section */}
+        <section className="w-full bg-[#232323] text-white py-16 px-4">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-sm text-gray-400 mb-2 font-medium">PCity Cares</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">Trung tâm Hỗ trợ Kỹ thuật</h1>
+            <p className="text-gray-300 mb-8 max-w-2xl">
+              Giải đáp thắc mắc về đơn hàng, quy trình mua bán linh kiện và xử lý khiếu nại.
+            </p>
+            
+            <div className="flex w-full max-w-2xl bg-white rounded-md overflow-hidden">
+              <input 
+                type="text" 
+                placeholder="Nhập từ khóa (Ví dụ: hoàn tiền, lừa đảo, đóng gói...)" 
+                className="flex-1 px-4 py-3 text-gray-800 focus:outline-none"
+              />
+              <button className="support-btn px-8 py-3">
+                Tìm kiếm
               </button>
-              {openFaqIndex === index && (
-                <div className="p-4 bg-white text-gray-600 text-sm border-t border-gray-200">
-                  {faq.answer}
-                </div>
-              )}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* 4. Contact Section */}
-      <section className="max-w-4xl mx-auto px-4 py-12 mt-8">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Liên hệ với Chúng tôi</h2>
-          <p className="text-gray-600">Nếu câu hỏi trên chưa giải quyết được vấn đề, hãy liên hệ trực tiếp.</p>
-        </div>
+        {/* 2. Categories Section */}
+        <section className="max-w-5xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
+              <ShoppingCart className="w-10 h-10 mx-auto text-gray-800 mb-4" />
+              <h3 className="font-bold text-gray-900 mb-2">Mua hàng</h3>
+              <p className="text-sm text-gray-600">Theo dõi đơn hàng và các phương thức thanh toán an toàn.</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
+              <RefreshCcw className="w-10 h-10 mx-auto text-gray-800 mb-4" />
+              <h3 className="font-bold text-gray-900 mb-2">Trả hàng & Hoàn tiền</h3>
+              <p className="text-sm text-gray-600">Quy trình xử lý khi linh kiện lỗi hoặc sai mô tả.</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
+              <Store className="w-10 h-10 mx-auto text-gray-800 mb-4" />
+              <h3 className="font-bold text-gray-900 mb-2">Bán hàng</h3>
+              <p className="text-sm text-gray-600">Cách đăng tin chuẩn, định giá đồ cũ và quy chuẩn đóng gói.</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
+              <ShieldCheck className="w-10 h-10 mx-auto text-gray-800 mb-4" />
+              <h3 className="font-bold text-gray-900 mb-2">Tài khoản</h3>
+              <p className="text-sm text-gray-600">Báo cáo gian lận, bảo mật và quản lý thông tin cá nhân.</p>
+            </div>
+          </div>
+        </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="flex flex-col items-center text-center p-6">
-            <Phone className="w-12 h-12 text-gray-800 mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Tổng đài Khiếu nại</h3>
-            <p className="text-gray-600 text-sm mb-4">
-              Hỗ trợ khẩn cấp các vấn đề về lừa đảo hoặc kẹt tiền thanh toán.
-            </p>
-            <p className="font-bold text-lg text-gray-900">1900 - 1234</p>
-            <p className="text-sm text-gray-500">Thứ 2 - Thứ 6 | 9:00 Sáng - 6:00 Chiều</p>
+        {/* 3. FAQ Section */}
+        <section className="max-w-3xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold !text-gray-900 !mb-4">Câu hỏi thường gặp</h2>
+          <p className="!text-gray-600 !mb-8">Những vấn đề người dùng thường gặp nhất khi giao dịch linh kiện.</p>
+          
+          <div className="space-y-3">
+            {faqs.map((faq, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+                <button 
+                  className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 text-left transition-colors"
+                  onClick={() => toggleFaq(index)}
+                >
+                  <span className="font-medium !text-gray-800">{faq.question}</span>
+                  {openFaqIndex === index ? (
+                    <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  )}
+                </button>
+                {openFaqIndex === index && (
+                  <div className="p-4 bg-white !text-gray-600 text-sm border-t border-gray-200 !leading-relaxed">
+                    {faq.answer}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 4. Contact Section */}
+        <section className="max-w-4xl mx-auto px-4 py-12 mt-8">
+          <div className="text-center !mb-12">
+            <h2 className="text-2xl font-bold !text-gray-900 !mb-4">Liên hệ với Chúng tôi</h2>
+            <p className="!text-gray-600">Nếu câu hỏi trên chưa giải quyết được vấn đề, hãy liên hệ trực tiếp.</p>
           </div>
 
-          <div className="flex flex-col items-center text-center p-6">
-            <Mail className="w-12 h-12 text-gray-800 mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Hỗ trợ qua Email</h3>
-            <p className="text-gray-600 text-sm mb-6">
-              Gửi email đính kèm hình ảnh/video để chúng tôi xử lý nhanh nhất.
-            </p>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors">
-              Gửi Email
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-col items-center text-center p-6 gap-4">
+              <Phone className="w-12 h-12 text-gray-800" />
+              <h3 className="text-xl font-bold !text-gray-900">Tổng đài Khiếu nại</h3>
+              <p className="!text-gray-600 text-sm !leading-relaxed px-4">
+                Hỗ trợ khẩn cấp các vấn đề về lừa đảo hoặc kẹt tiền thanh toán.
+              </p>
+              <p className="font-bold text-lg !text-gray-900">1900 - 1234</p>
+              <p className="text-sm !text-gray-500">Thứ 2 - Thứ 6 | 9:00 Sáng - 6:00 Chiều</p>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6 gap-4">
+              <Mail className="w-12 h-12 text-gray-800" />
+              <h3 className="text-xl font-bold !text-gray-900">Hỗ trợ qua Email</h3>
+              <p className="!text-gray-600 text-sm !leading-relaxed px-4">
+                Gửi email đính kèm hình ảnh/video để chúng tôi xử lý nhanh nhất.
+              </p>
+              <button className="support-btn px-6 py-3 rounded-md mt-2">
+                Gửi Email
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
+
+      <Footer />
+    </>
   );
 };
 
