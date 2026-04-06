@@ -1,4 +1,5 @@
 import type { Product } from "../types/product";
+import { Link } from "react-router-dom";
 
 type Props = {
   product: Product;
@@ -6,37 +7,36 @@ type Props = {
 
 export default function ProductCard({ product }: Props) {
   return (
-    <div className="bg-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition flex flex-col min-h-[300px]">
-      
-      <div className="h-[140px] flex items-center justify-center mb-3">
+    <div className="product-card">
+      <div className="product-image-wrap">
         <img
-          src={product.image}
+          src={product.images?.[0]?.url || "https://via.placeholder.com/300x200?text=No+Image"}
           alt={product.name}
-          className="max-w-full max-h-[130px] object-contain"
+          className="product-image"
         />
       </div>
 
-      <h4 className="text-base font-bold text-gray-900 mb-2 line-clamp-2 text-left min-h-[44px]">
-        {product.name}
-      </h4>
+      <h4 className="product-name">{product.name}</h4>
 
-      <p className="text-sm font-bold text-gray-900 mb-3 text-left">
+      <p className="product-price">
         {product.price.toLocaleString("vi-VN")} VND
       </p>
 
-      <div className="mt-auto flex items-center justify-center gap-2">
-        
-        <button className="px-5 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-semibold transition">
+      <div className="product-actions">
+        <Link 
+          to={`/product/${product.id}`} 
+          className="product-card-btn product-card-view"
+          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           Xem
-        </button>
+        </Link>
 
         <button
+          className="product-card-btn product-card-cart"
           aria-label="Add to cart"
-          className="w-[40px] h-[40px] flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full text-lg transition"
         >
           🛒
         </button>
-
       </div>
     </div>
   );

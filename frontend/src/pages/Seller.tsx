@@ -8,7 +8,7 @@ import { mockProducts } from "../services/mockproduct";
 import type { Product } from "../types/product";
 
 
-export default function SellerPage() {
+export default function Seller() {
   const [products, setProducts] = useState<Product[]>([]);
 
  /*useEffect(() => {

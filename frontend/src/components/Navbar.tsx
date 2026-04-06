@@ -1,25 +1,41 @@
+// src/components/Navbar.tsx
+import { Link, useNavigate } from "react-router-dom";
+import { getAuthUser } from "../services/auth.service";
+import "./styles.css";
+
 export default function Navbar() {
+  const navigate = useNavigate();
+  const user = getAuthUser();
+
+  const handleProfileClick = () => {
+    if (user) {
+      navigate("/info");
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
-    <div className="flex justify-between items-center px-16 py-3 bg-gray-100">
-      
-      {/* Left */}
-      <div className="flex gap-8">
-        <a className="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-500 hover:drop-shadow-md transition">
-          Trang chủ
-        </a>
-        <a className="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-500 hover:drop-shadow-md transition">
-          Kênh Người Bán
-        </a>
-        <a className="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-500 hover:drop-shadow-md transition">
-          Hỗ Trợ
-        </a>
+    <div className="navbar">
+      <div className="nav-left">
+        <Link to="/">Trang chủ</Link>
+        <Link to="/seller">Kênh Người Bán</Link>
+        <Link to="/support">Hỗ Trợ</Link>
       </div>
 
-      {/* Right */}
-      <div className="flex gap-5 text-lg">
-        <span className="cursor-pointer">🔍</span>
-        <span className="cursor-pointer">👤</span>
-        <span className="cursor-pointer">🛒</span>
+      <div className="nav-right">
+        <span className="icon">🔍</span>
+        <button
+          onClick={handleProfileClick}
+          className="icon"
+          aria-label={user ? "Thông tin người dùng" : "Đăng nhập"}
+          style={{ border: "none", background: "transparent", cursor: "pointer" }}
+        >
+          👤
+        </button>
+        <Link to="/cart" className="icon" aria-label="Giỏ hàng">
+          🛒
+        </Link>
       </div>
     </div>
   );
