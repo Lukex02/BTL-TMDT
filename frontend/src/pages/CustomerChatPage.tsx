@@ -7,8 +7,8 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../components/Navbar.tsx";
+import Footer from "../components/Footer.tsx";
 import {
   Search,
   SendHorizonal,
@@ -31,7 +31,7 @@ import {
   Filter,
 } from "lucide-react";
 import "../components/styles.css";
-import type { ChatStatus, Conversation } from "../types/chat";
+import type { ChatStatus, Conversation } from "../types/chat.ts";
 import {
   addInternalNote,
   createConversation,
