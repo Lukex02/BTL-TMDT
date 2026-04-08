@@ -11,6 +11,7 @@ type SortOption = "default" | "name-asc" | "price-asc" | "price-desc";
 type StockStatus = "all" | "in-stock" | "out-of-stock";
 
 type ProductListItem = Product & {
+  uniqueKey: string;
   category: string;
   brand: string;
   stockStatus: Exclude<StockStatus, "all">;
@@ -37,79 +38,79 @@ const seedData: Array<{
   stockStatus: "in-stock" | "out-of-stock";
   isHotDeal: boolean;
 }> = [
-  {
-    category: "Máy Tính & Laptop",
-    brand: "HP",
-    stockStatus: "in-stock",
-    isHotDeal: true,
-  },
-  {
-    category: "Máy Tính & Laptop",
-    brand: "Dell",
-    stockStatus: "in-stock",
-    isHotDeal: true,
-  },
-  {
-    category: "Linh Kiện",
-    brand: "ASUS",
-    stockStatus: "in-stock",
-    isHotDeal: true,
-  },
-  {
-    category: "Phụ Kiện",
-    brand: "Acer",
-    stockStatus: "out-of-stock",
-    isHotDeal: false,
-  },
-  {
-    category: "Chuột Gaming",
-    brand: "Logitech",
-    stockStatus: "in-stock",
-    isHotDeal: false,
-  },
-  {
-    category: "Bàn Phím",
-    brand: "Razer",
-    stockStatus: "in-stock",
-    isHotDeal: false,
-  },
-  {
-    category: "Keycap",
-    brand: "Razer",
-    stockStatus: "out-of-stock",
-    isHotDeal: false,
-  },
-  {
-    category: "Máy Tính & Laptop",
-    brand: "HP",
-    stockStatus: "in-stock",
-    isHotDeal: true,
-  },
-  {
-    category: "Linh Kiện",
-    brand: "ASUS",
-    stockStatus: "in-stock",
-    isHotDeal: false,
-  },
-  {
-    category: "Phụ Kiện",
-    brand: "Acer",
-    stockStatus: "in-stock",
-    isHotDeal: false,
-  },
-  {
-    category: "Máy Tính & Laptop",
-    brand: "Dell",
-    stockStatus: "in-stock",
-    isHotDeal: true,
-  },
-  {
-    category: "Chuột Gaming",
-    brand: "Logitech",
-    stockStatus: "in-stock",
-    isHotDeal: false,
-  },
-];
+    {
+      category: "Máy Tính & Laptop",
+      brand: "HP",
+      stockStatus: "in-stock",
+      isHotDeal: true,
+    },
+    {
+      category: "Máy Tính & Laptop",
+      brand: "Dell",
+      stockStatus: "in-stock",
+      isHotDeal: true,
+    },
+    {
+      category: "Linh Kiện",
+      brand: "ASUS",
+      stockStatus: "in-stock",
+      isHotDeal: true,
+    },
+    {
+      category: "Phụ Kiện",
+      brand: "Acer",
+      stockStatus: "out-of-stock",
+      isHotDeal: false,
+    },
+    {
+      category: "Chuột Gaming",
+      brand: "Logitech",
+      stockStatus: "in-stock",
+      isHotDeal: false,
+    },
+    {
+      category: "Bàn Phím",
+      brand: "Razer",
+      stockStatus: "in-stock",
+      isHotDeal: false,
+    },
+    {
+      category: "Keycap",
+      brand: "Razer",
+      stockStatus: "out-of-stock",
+      isHotDeal: false,
+    },
+    {
+      category: "Máy Tính & Laptop",
+      brand: "HP",
+      stockStatus: "in-stock",
+      isHotDeal: true,
+    },
+    {
+      category: "Linh Kiện",
+      brand: "ASUS",
+      stockStatus: "in-stock",
+      isHotDeal: false,
+    },
+    {
+      category: "Phụ Kiện",
+      brand: "Acer",
+      stockStatus: "in-stock",
+      isHotDeal: false,
+    },
+    {
+      category: "Máy Tính & Laptop",
+      brand: "Dell",
+      stockStatus: "in-stock",
+      isHotDeal: true,
+    },
+    {
+      category: "Chuột Gaming",
+      brand: "Logitech",
+      stockStatus: "in-stock",
+      isHotDeal: false,
+    },
+  ];
 
 const displayProducts: ProductListItem[] = Array.from({ length: 12 }, (_, index) => {
   const product = mockProducts[index % mockProducts.length];
@@ -117,7 +118,7 @@ const displayProducts: ProductListItem[] = Array.from({ length: 12 }, (_, index)
 
   return {
     ...product,
-    id: `${product.id}-${index + 1}`,
+    uniqueKey: `${product.id}-${index + 1}`,
     category: seed.category,
     brand: seed.brand,
     stockStatus: seed.stockStatus,
@@ -268,9 +269,11 @@ export default function ProductList() {
     setVisibleCount(PAGE_SIZE);
   };
 
-  const handleAddToCart = (productId: string) => {
+  const handleAddToCart = (uniqueKey: string) => {
     setCartIds((prev) =>
-      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
+      prev.includes(uniqueKey)
+        ? prev.filter((id) => id !== uniqueKey)
+        : [...prev, uniqueKey]
     );
   };
 
@@ -455,9 +458,8 @@ export default function ProductList() {
                 {categories.map((category) => (
                   <li
                     key={category}
-                    className={`product-list-sidebar-item ${
-                      selectedCategory === category ? "active" : ""
-                    }`}
+                    className={`product-list-sidebar-item ${selectedCategory === category ? "active" : ""
+                      }`}
                     onClick={() => handleCategoryChange(category)}
                   >
                     {category}
@@ -476,17 +478,16 @@ export default function ProductList() {
               {visibleProducts.length > 0 ? (
                 <div className="product-list-grid">
                   {visibleProducts.map((product) => (
-                    <div key={product.id} className="product-list-card-wrap">
+                    <div key={product.uniqueKey} className="product-list-card-wrap">
                       <ProductCard product={product} />
 
                       <button
                         type="button"
-                        className={`product-list-cart-toggle ${
-                          cartIds.includes(product.id) ? "active" : ""
-                        }`}
-                        onClick={() => handleAddToCart(product.id)}
+                        className={`product-list-cart-toggle ${cartIds.includes(product.uniqueKey) ? "active" : ""
+                          }`}
+                        onClick={() => handleAddToCart(product.uniqueKey)}
                       >
-                        {cartIds.includes(product.id)
+                        {cartIds.includes(product.uniqueKey)
                           ? "Đã thêm vào giỏ"
                           : "Thêm vào giỏ"}
                       </button>
