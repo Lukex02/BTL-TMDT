@@ -65,6 +65,7 @@ export class ProductService implements IProductService {
           seller: product.seller,
           category: product.category,
           attributes: product.attributes,
+          images: product.images,
           status: product.status,
           price: product.price,
           stock: product.stock,
@@ -120,8 +121,8 @@ export class ProductService implements IProductService {
 
   private mapProductDtoToDb(product: ProductDto) {
     return {
-      seller_id: product.seller.id,
       category_id: product.category?.id,
+      seller_id: product.seller?.id,
       name: product.name,
       description: product.description,
       price: product.price,
@@ -141,7 +142,7 @@ export class ProductService implements IProductService {
     }
     return products
       .map((product: any) => this.mapToProduct(product))
-      .filter((product: Product) => product !== null);
+      .filter((product): product is Product => product !== null);
   }
 
   async getProductById(productId: number) {
@@ -189,34 +190,63 @@ export class ProductService implements IProductService {
 
     return data
       .map((product: any) => this.mapToProduct(product))
-      .filter((product: Product) => product !== null);
+      .filter((product): product is Product => product !== null);
   }
 
   async createProduct(create: ProductDto) {
-    const { data, error } = await this.supabase
+    const { data:prod, error:prodErr } = await this.supabase
       .from('Product')
-      .insert(this.mapProductDtoToDb(create));
-    if (error) {
-      throw new BadRequestException(error.message);
+      .insert(this.mapProductDtoToDb(create))
+      .select('id')
+      .single();
+    if (prodErr) {
+      throw new BadRequestException(prodErr.message);
+    }
+    const { error: imgErr } = await this.supabase
+      .from('ProductImage')
+      .insert(create.images?.map((img: any) => ({
+        product_id: prod.id,
+        url: img.url,
+      })));
+    if (imgErr) {
+      throw new BadRequestException(imgErr.message);
     }
     return { message: 'Product created successfully' };
   }
 
   async updateProduct(update: ProductDto) {
-    const { data, error } = await this.supabase
+    const { data:products, error:productErr } = await this.supabase
       .from('Product')
       .update({
         ...this.mapProductDtoToDb(update),
-        updated_at: new Date().toISOString(),
       })
       .eq('id', update.id)
       .select();
-    if (error) {
-      throw new BadRequestException(error.message);
+    if (productErr) {
+      throw new BadRequestException(productErr.message);
     }
-    if (data.length === 0) {
+    if (products.length === 0) {
       throw new NotFoundException('Product not found');
     }
+
+    const { error: deleteError } = await this.supabase
+      .from('ProductImage')
+      .delete()
+      .eq('product_id', update.id);
+
+    if (deleteError) throw deleteError;
+
+    const imagesData = update?.images?.map((img: any) => ({
+      product_id: update.id,
+      url: img.url,
+    }));
+
+    const { error: insertError } = await this.supabase
+      .from('ProductImage')
+      .insert(imagesData);
+
+    if (insertError) throw insertError;
+
     return { message: 'Product updated successfully' };
   }
 
@@ -227,6 +257,16 @@ export class ProductService implements IProductService {
       .eq('id', productId);
     if (error) {
       throw new BadRequestException(error.message);
+    }
+    const { data: deleted, error: checkErr } = await this.supabase
+      .from('Product')
+      .select()
+      .eq('id', productId);
+    if (checkErr) {
+      throw new BadRequestException(checkErr.message);
+    }
+    if (deleted.length > 0) {
+      throw new BadRequestException('Product is not deleted');
     }
     return { message: 'Product deleted successfully' };
   }
@@ -241,7 +281,7 @@ export class ProductService implements IProductService {
     }
     return categories
       .map((category: any) => this.mapToCategoryDto(category))
-      .filter((category: CategoryDto) => category !== null);
+      .filter((category): category is CategoryDto => category !== null);
   }
 
   async createCategory(create: CategoryDto) {

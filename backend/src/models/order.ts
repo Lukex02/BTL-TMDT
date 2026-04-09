@@ -12,7 +12,14 @@ export class Order {
   id: number;
   user: UserNested;
   totalAmount: number;
-  status: 'pending' | 'paid' | 'shipped' | 'completed' | 'canceled';
+  status: 'pending' | 'processing' | 'shipped' | 'canceled';
+  phone: string;
+  address: string;
+  shipFee: number;
+  deliveredAt: Date;
+  deliveryStartAt: Date;
+  processedAt: Date;
+  canceledAt: Date;
   createdAt: Date;
   updatedAt: Date;
   items?: OrderItem[]; // include order items if needed

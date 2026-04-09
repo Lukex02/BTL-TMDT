@@ -18,14 +18,22 @@ export class OrderController {
 
   @Get('buyer/:userId')
   @ApiOperation({ summary: 'Get orders by user buyer' })
-  @ApiParam({ name: 'userId', type: String, example: '1' })
+  @ApiParam({
+    name: 'userId',
+    type: String,
+    example: 'fded0a14-b81c-4b04-952b-f09d545ad27a',
+  })
   async getByUserBuyer(@Param('userId') userId: string) {
     return await this.orderService.getByUserBuyer(userId);
   }
 
   @Get('seller/:userId')
   @ApiOperation({ summary: 'Get orders by user seller' })
-  @ApiParam({ name: 'userId', type: String, example: '1' })
+  @ApiParam({
+    name: 'userId',
+    type: String,
+    example: '2964de3d-1202-4131-8f47-1b6c14e150aa',
+  })
   async getByUserSeller(@Param('userId') userId: string) {
     return await this.orderService.getByUserSeller(userId);
   }

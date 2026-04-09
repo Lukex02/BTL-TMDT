@@ -89,12 +89,13 @@ export class ProductDto {
   id?: number;
 
   @IsObject()
+  @IsOptional()
   @ApiProperty({
     description: 'Seller',
     example: UserNestedDto,
     required: true,
   })
-  seller: UserNestedDto;
+  seller?: UserNestedDto;
 
   @IsString()
   @ApiProperty({
