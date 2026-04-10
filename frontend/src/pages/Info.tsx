@@ -1,47 +1,111 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuthUser, clearAuthUser } from "../services/auth.service";
+import { getOrdersByBuyer } from "../services/order.service";
+import { getProductsBySeller, createProduct, getProductCategories, deleteProduct } from "../services/product.service";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-const orderBuyData = [
-  { id: "DH-2024-001", product: "Laptop Gaming Asus ROG Strix", price: "25.500.000đ", status: "Đang vận chuyển" },
-  { id: "DH-2024-002", product: "Card màn hình RTX 4060 Ti", price: "12.900.000đ", status: "Đã nhận" },
-  { id: "DH-2024-003", product: "SSD Samsung 990 Pro 1TB", price: "3.200.000đ", status: "Đang vận chuyển" },
-  { id: "DH-2024-004", product: "RAM Corsair Vengeance 32GB DDR5", price: "2.850.000đ", status: "Đã nhận" },
-];
-
-const sellProducts = [
-  { title: "RAM 16GB DDR4 3200MHz cũ", price: "850.000đ", views: 234, icon: "💾" },
-  { title: "Bàn phím cơ Akko 3068B", price: "1.200.000đ", views: 189, icon: "⌨️" },
-  { title: "CPU Intel i5-12400F", price: "3.500.000đ", views: 156, icon: "🔳" },
-  { title: "Màn hình LG 27inch 144Hz", price: "4.200.000đ", views: 312, icon: "🖥️" },
-];
+interface FormData {
+  name: string;
+  price: string;
+  stock: string;
+  categoryId: string;
+  description: string;
+  status: string;
+}
 
 export default function Info() {
   const navigate = useNavigate();
   const user = getAuthUser();
 
+  const [orderBuyData, setOrderBuyData] = useState<any[]>([]);
+  const [sellProducts, setSellProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [images, setImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    price: "",
+    stock: "",
+    categoryId: "",
+    description: "",
+    status: "active",
+  });
+
+  const loadUserData = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoading(true);
+
+      const orders = await getOrdersByBuyer(user.id);
+      const formattedOrders = orders.map((order: any) => ({
+        id: order.id,
+        product: order.items?.[0]?.product?.name || "Unknown",
+        price: new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(order.totalAmount || 0),
+        status: order.status,
+      }));
+      setOrderBuyData(formattedOrders);
+      
+      const sellerProds = await getProductsBySeller(user.id);
+      console.log("Sản phẩm của người bán:", sellerProds);
+      const formattedProducts = sellerProds.map((prod: any) => ({
+        id: prod.id,
+        title: prod.name,
+        price: new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(prod.price || 0),
+        views: Math.floor(Math.random() * 500),
+        
+        firstImageUrl: (Array.isArray(prod.images) && prod.images.length > 0) 
+          ? prod.images[0].url 
+          : null,
+      }));
+      setSellProducts(formattedProducts);
+
+      const cats = await getProductCategories();
+      setCategories(cats);
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user) {
       navigate("/login", { replace: true });
+    } else {
+      loadUserData();
     }
-  }, [navigate, user]);
+  }, [user?.id, loadUserData, navigate]);
+
 
   if (!user) {
     return null;
   }
 
-  const [activeTab, setActiveTab] = useState("overview");
-
-  const [images, setImages] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const profile = user;
-
   const handleLogout = () => {
     clearAuthUser();
     navigate("/login");
+  };
+
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,15 +113,21 @@ export default function Info() {
     if (!files) return;
 
     const newFiles = Array.from(files);
-    
+
     if (images.length + newFiles.length > 8) {
       alert("Bạn chỉ được tải lên tối đa 8 ảnh.");
       return;
     }
 
-    const newImageUrls = newFiles.map((file) => URL.createObjectURL(file));
-    setImages((prevImages) => [...prevImages, ...newImageUrls]);
-    
+    newFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setImages((prev) => [...prev, base64String]);
+      };
+      reader.readAsDataURL(file);
+    });
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -66,6 +136,70 @@ export default function Info() {
   const handleRemoveImage = (indexToRemove: number) => {
     setImages((prevImages) => prevImages.filter((_, index) => index !== indexToRemove));
   };
+
+  const handleAddProduct = async () => {
+    try {
+      if (!formData.name || !formData.price || images.length === 0) {
+        alert("Vui lòng điền đầy đủ thông tin và thêm ít nhất 1 ảnh.");
+        return;
+      }
+
+      setLoading(true);
+
+      const productData = {
+        name: formData.name,
+        price: Number(formData.price.replace(/[^0-9]/g, "")),
+        stock: Number(formData.stock),
+        description: formData.description,
+        status: formData.status,
+        category: { 
+          id: Number(formData.categoryId) 
+        },
+        seller: { 
+          id: user.id 
+        },
+        images: images.map((base64) => ({ 
+          url: base64 
+        })),
+        attributes: []
+      };
+      console.log("Dữ liệu sản phẩm gửi đi:", productData);
+      await createProduct(productData);
+
+      setFormData({ name: "", price: "", stock: "", categoryId: "", description: "", status: "active" });
+      setImages([]);
+      await loadUserData();
+      setActiveTab("sell-listings");
+      alert("Thêm sản phẩm thành công!");
+    } catch (error: any) {
+      console.error("Lỗi:", error);
+      alert("Không thể tạo sản phẩm. Hãy kiểm tra lại kết nối.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation();
+    
+    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này không?")) return;
+
+    try {
+      setLoading(true);
+      await deleteProduct(productId); 
+      
+      alert("Xóa sản phẩm thành công!");
+      
+      await loadUserData(); 
+    } catch (error: any) {
+      console.error("Lỗi khi xóa:", error);
+      alert(`Lỗi: ${error.response?.data?.message || "Không thể xóa sản phẩm"}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const profile = user;
 
   const menuStructure = [
     { id: "overview", label: "Tổng quan", icon: "📊", type: "parent" },
@@ -184,19 +318,64 @@ export default function Info() {
              </div>
              
              <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "900px" }}>
-               {[
-                 { label: "Tên sản phẩm", placeholder: "Nhập tên linh kiện..." },
-                 { label: "Giá bán", placeholder: "Ví dụ: 1.000.000" },
-                 { label: "Danh mục", placeholder: "Chọn danh mục sản phẩm" }
-               ].map((f) => (
-                 <div key={f.label} style={{ display: "grid", gridTemplateColumns: "180px 1fr", alignItems: "center" }}>
-                   <label style={{ fontSize: "14px", color: "#4b5563" }}>{f.label}:</label>
-                   <input type="text" placeholder={f.placeholder} style={{ padding: "10px 15px", borderRadius: "25px", border: "1px solid #e5e7eb", outline: "none", fontSize: "14px" }} />
-                 </div>
-               ))}
+               <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", alignItems: "center" }}>
+                 <label style={{ fontSize: "14px", color: "#4b5563" }}>Tên sản phẩm:</label>
+                 <input
+                   type="text"
+                   name="name"
+                   value={formData.name}
+                   onChange={handleFormChange}
+                   placeholder="Nhập tên linh kiện..."
+                   style={{ padding: "10px 15px", borderRadius: "25px", border: "1px solid #e5e7eb", outline: "none", fontSize: "14px" }}
+                 />
+               </div>
+               <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", alignItems: "center" }}>
+                 <label style={{ fontSize: "14px", color: "#4b5563" }}>Giá bán:</label>
+                 <input
+                   type="text"
+                   name="price"
+                   value={formData.price}
+                   onChange={handleFormChange}
+                   placeholder="Ví dụ: 1.000.000"
+                   style={{ padding: "10px 15px", borderRadius: "25px", border: "1px solid #e5e7eb", outline: "none", fontSize: "14px" }}
+                 />
+               </div>
+               <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", alignItems: "center" }}>
+                 <label style={{ fontSize: "14px", color: "#4b5563" }}>Số lượng:</label>
+                 <input
+                   type="text"
+                   name="stock"
+                   value={formData.stock}
+                   onChange={handleFormChange}
+                   placeholder="Nhập số lượng"
+                   style={{ padding: "10px 15px", borderRadius: "25px", border: "1px solid #e5e7eb", outline: "none", fontSize: "14px" }}
+                 />
+               </div>
+               <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", alignItems: "center" }}>
+                 <label style={{ fontSize: "14px", color: "#4b5563" }}>Danh mục:</label>
+                 <select
+                   name="categoryId"
+                   value={formData.categoryId}
+                   onChange={handleFormChange}
+                   style={{ padding: "10px 15px", borderRadius: "25px", border: "1px solid #e5e7eb", outline: "none", fontSize: "14px" }}
+                 >
+                   <option value="">Chọn danh mục sản phẩm</option>
+                   {categories.map((cat: any) => (
+                     <option key={cat.id} value={cat.id}>
+                       {cat.name}
+                     </option>
+                   ))}
+                 </select>
+               </div>
                <div style={{ display: "grid", gridTemplateColumns: "180px 1fr" }}>
                  <label style={{ fontSize: "14px", color: "#4b5563", marginTop: "10px" }}>Mô tả sản phẩm:</label>
-                 <textarea style={{ padding: "15px", borderRadius: "12px", border: "1px solid #e5e7eb", minHeight: "120px", outline: "none", fontSize: "14px" }} placeholder="Mô tả chi tiết về tình trạng, bảo hành..." />
+                 <textarea
+                   name="description"
+                   value={formData.description}
+                   onChange={handleFormChange}
+                   style={{ padding: "15px", borderRadius: "12px", border: "1px solid #e5e7eb", minHeight: "120px", outline: "none", fontSize: "14px" }}
+                   placeholder="Mô tả chi tiết về tình trạng, bảo hành..."
+                 />
                </div>
              </div>
 
@@ -250,8 +429,23 @@ export default function Info() {
              </div>
 
              <div style={{ display: "flex", gap: "15px", marginTop: "50px" }}>
-               <button style={{ padding: "12px 35px", borderRadius: "25px", border: "none", background: "var(--primary)", color: "#fff", fontWeight: "600", cursor: "pointer", boxShadow: "0 4px 10px rgba(0,119,255,0.2)" }}>Lưu & Đăng bài</button>
-               <button onClick={() => setActiveTab("overview")} style={{ padding: "12px 35px", borderRadius: "25px", border: "1px solid #e5e7eb", background: "#fff", color: "#4b5563", fontWeight: "600", cursor: "pointer" }}>Hủy bỏ</button>
+               <button
+                 onClick={handleAddProduct}
+                 disabled={loading}
+                 style={{
+                   padding: "12px 35px",
+                   borderRadius: "25px",
+                   border: "none",
+                   background: loading ? "#cbd5e1" : "var(--primary)",
+                   color: "#fff",
+                   fontWeight: "600",
+                   cursor: loading ? "not-allowed" : "pointer",
+                   boxShadow: "0 4px 10px rgba(0,119,255,0.2)",
+                 }}
+               >
+                 {loading ? "Đang xử lý..." : "Lưu & Đăng bài"}
+               </button>
+               <button onClick={() => setActiveTab("overview")} disabled={loading} style={{ padding: "12px 35px", borderRadius: "25px", border: "1px solid #e5e7eb", background: "#fff", color: "#4b5563", fontWeight: "600", cursor: "pointer" }}>Hủy bỏ</button>
              </div>
            </section>
           ) : (
@@ -298,7 +492,7 @@ export default function Info() {
                   </div>
                 </section>
               )}
-
+              
               {(activeTab === "overview" || activeTab === "sell-listings") && (
                 <section className="dashboard-block">
                   <h3 style={{ fontSize: "18px", display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px", color: "var(--text-main)" }}>
@@ -308,34 +502,104 @@ export default function Info() {
                   {activeTab === "overview" && (
                     <div className="info-cards" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px", marginBottom: "25px" }}>
                       {[
-                        { title: "Đơn chờ xử lý", value: "8", icon: "📋" },
-                        { title: "Tin đang đăng", value: "12", icon: "👁️" },
-                        { title: "Doanh thu", value: "15.8M", icon: "📊" },
+                        { title: "Đơn chờ xử lý", value: "8" },
+                        { title: "Tin đang đăng", value: "12" },
+                        { title: "Doanh thu", value: "15.8M" },
                       ].map(stat => (
                         <div className="card" key={stat.title} style={{ backgroundColor: "#fff", padding: "20px", borderRadius: "14px", border: "1px solid #e5e7eb", boxShadow: "0 2px 6px rgba(0,0,0,0.01)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <h4 style={{ color: "#6b7280", margin: 0, fontSize: "14px", fontWeight: "500" }}>{stat.title}</h4>
-                            <span style={{ fontSize: "18px", opacity: 0.7 }}>{stat.icon}</span>
                           </div>
                           <p style={{ fontSize: "28px", fontWeight: "800", margin: "12px 0 0", color: "var(--text-main)" }}>{stat.value}</p>
                         </div>
                       ))}
                     </div>
                   )}
-
                   <div className="selllist-card" style={{ border: "1px solid #e5e7eb", borderRadius: "14px", backgroundColor: "#fff", padding: "25px" }}>
-                    <h4 style={{ margin: "0 0 20px 0", fontSize: "16px", color: "var(--text-main)" }}>Linh kiện đang rao bán</h4>
+                    <h4 style={{ margin: "0 0 20px 0", fontSize: "16px", color: "var(--text-main)"}}>Linh kiện đang rao bán</h4>
                     <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "15px" }}>
                       {sellProducts.map((product, idx) => (
-                        <li key={idx} style={{ display: "flex", alignItems: "center", padding: "15px", borderRadius: "12px", border: "1px solid #f3f4f6", transition: "all 0.15s ease" }} onMouseOver={(e) => {e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.backgroundColor = "var(--bg-light)"}} onMouseOut={(e) => {e.currentTarget.style.borderColor = "#f3f4f6"; e.currentTarget.style.backgroundColor = "transparent"}}>
-                          <div style={{ width: "45px", height: "45px", backgroundColor: "var(--bg-light)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "15px", fontSize: "18px" }}>
-                            {product.icon}
+                        <li 
+                          key={idx} 
+                          style={{ 
+                            display: "flex", 
+                            alignItems: "center", 
+                            padding: "15px", 
+                            borderRadius: "12px", 
+                            border: "1px solid #f3f4f6", 
+                            transition: "all 0.15s ease", 
+                            cursor: "pointer",
+                            position: "relative" 
+                          }} 
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.borderColor = "var(--primary)"; 
+                            e.currentTarget.style.backgroundColor = "var(--bg-light)";
+                          }} 
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.borderColor = "#f3f4f6"; 
+                            e.currentTarget.style.backgroundColor = "transparent";
+                          }} 
+                          onClick={() => {
+                            navigate(`/product/${product.id}`);
+                          }}
+                        >
+                          {/* === PHẦN HIỂN THỊ ẢNH ĐẦU TIÊN === */}
+                          <div style={{ 
+                            width: "50px", 
+                            height: "50px", 
+                            backgroundColor: "#f8fafc", 
+                            borderRadius: "10px", 
+                            marginRight: "15px", 
+                            overflow: "hidden",
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            border: "1px solid #e5e7eb"
+                          }}>
+                            {product.firstImageUrl ? (
+                              <img 
+                                src={product.firstImageUrl} 
+                                alt={product.title} 
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                              />
+                            ) : (
+                              <span style={{ fontSize: "20px" }}>📦</span>
+                            )}
                           </div>
+                          
                           <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: "600", fontSize: "15px", color: "var(--text-main)" }}>{product.title}</div>
                             <div style={{ fontSize: "13px", color: "#94a3b8" }}>{product.views} lượt xem</div>
                           </div>
-                          <div style={{ fontWeight: "700", color: "var(--primary)", fontSize: "16px" }}>{product.price}</div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                            <div style={{ fontWeight: "700", color: "var(--primary)", fontSize: "16px" }}>{product.price}</div>
+                            
+                            <button
+                              onClick={(e) => handleDeleteProduct(e, product.id)}
+                              style={{
+                                border: "none",
+                                background: "#fee2e2",
+                                color: "#ef4444",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                transition: "all 0.2s"
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.background = "#ef4444";
+                                e.currentTarget.style.color = "#fff";
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.background = "#fee2e2";
+                                e.currentTarget.style.color = "#ef4444";
+                              }}
+                            >
+                              Xóa
+                            </button>
+                          </div>
                         </li>
                       ))}
                     </ul>
