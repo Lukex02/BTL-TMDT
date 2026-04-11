@@ -64,7 +64,9 @@
 }
 
 body {
+  font-family: sans-serif;
   margin: 0;
+  background: #ffffff;
 }
 
 h1,
@@ -109,4 +111,10 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+.input {
+  @apply w-full border border-gray-300 rounded-lg px-4 py-3 text-sm 
+         bg-white text-black
+         focus:outline-none focus:ring-2 focus:ring-indigo-500;
 }

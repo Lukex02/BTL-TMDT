@@ -44,3 +44,26 @@ export const getOrderById = async (orderId: string): Promise<Order | null> => {
     return null;
   }
 };
+
+export const createOrder = async (data: any): Promise<any> => {
+  try {
+    const token = localStorage.getItem("access_token");
+
+    console.log("TOKEN:", token); // ✅ debug
+
+    const res = await axios.post(
+      "http://localhost:3000/order/create",
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return res.data;
+  } catch (error: any) {
+    console.error("Create order error:", error.response?.data);
+    throw error;
+  }
+};

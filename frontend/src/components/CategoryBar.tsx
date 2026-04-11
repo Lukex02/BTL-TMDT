@@ -1,4 +1,3 @@
-// src/components/CategoryBar.tsx
 type Category = {
   id: number;
   name: string;
@@ -35,15 +34,21 @@ const categories: Category[] = [
 
 export default function CategoryBar() {
   return (
-    <section className="category-bar">
+    <section className="w-full max-w-[1240px] mx-auto py-[24px] grid grid-cols-5 gap-x-[36px] items-start">
       {categories.map((category) => (
-        <div key={category.id} className="category-item">
+        <div
+          key={category.id}
+          className="w-full min-w-0 flex flex-col items-center justify-start text-center cursor-pointer group"
+        >
           <img
             src={category.image}
             alt={category.name}
-            className="category-image"
+            className="w-[56px] h-[56px] object-contain mb-[12px] transition-transform duration-200 group-hover:scale-105"
           />
-          <p className="category-name">{category.name}</p>
+
+          <p className="text-[18px] leading-[1.4] text-slate-400 font-medium transition-colors duration-200 group-hover:text-[#1565c0]">
+            {category.name}
+          </p>
         </div>
       ))}
     </section>
