@@ -36,13 +36,6 @@ export class ProductController {
     return await this.productService.getAllProducts();
   }
 
-  @Get(':productId')
-  @ApiOperation({ summary: 'Get product by id' })
-  @ApiParam({ name: 'productId', type: Number, example: 1 })
-  async getById(@Param('productId') productId: number) {
-    return await this.productService.getProductById(productId);
-  }
-
   @Get('filter')
   @ApiOperation({ summary: 'Get products by filter' })
   @ApiQuery({
@@ -70,11 +63,19 @@ export class ProductController {
     return await this.productService.getProductByFilter(filter);
   }
 
+  @Get(':productId')
+  @ApiOperation({ summary: 'Get product by id' })
+  @ApiParam({ name: 'productId', type: Number, example: 1 })
+  async getById(@Param('productId') productId: number) {
+    return await this.productService.getProductById(productId);
+  }
+
   @UseGuards(SupabaseAuthGuard)
   @Post('create')
   @ApiOperation({ summary: 'Create product' })
-  async create(@Body() create: ProductDto) {
-    return await this.productService.createProduct(create);
+  async create(@Body() create: ProductDto) { 
+
+    return await this.productService.createProduct(create); 
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -83,7 +84,7 @@ export class ProductController {
   async update(@Body() update: ProductDto) {
     return await this.productService.updateProduct(update);
   }
-
+ 
   @UseGuards(SupabaseAuthGuard)
   @Delete('delete/:productId')
   @ApiOperation({ summary: 'Delete product' })

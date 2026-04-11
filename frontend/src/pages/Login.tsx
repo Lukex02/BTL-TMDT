@@ -25,35 +25,54 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      let payload = {
-        email,
+      // Chỉ gửi email và password - không gửi username nếu không cần
+      let payload: any = {
         password,
-        username: email,
       };
+
+      // Nếu người dùng nhập email, gửi email
+      // Nếu người dùng nhập username, gửi username
+      if (email.includes("@")) {
+        payload.email = email;
+      } else {
+        payload.username = email;
+      }
+
+      console.log("Login payload:", payload);
 
       try {
         const user = await login(payload);
+        console.log("Login successful, user:", user);
         saveAuthUser(user);
         navigate("/");
         return;
       } catch (innerErr: any) {
         const innerMsg = innerErr?.response?.data?.message || innerErr?.message || "Đăng nhập thất bại";
+        console.log("Login error:", innerMsg, innerErr?.response?.data);
 
-        if (innerMsg.includes("Cannot coerce") || innerMsg.includes("User not found")) {
+        // Nếu lỗi là user not found, thử tìm username từ email
+        if (email.includes("@") && (innerMsg.includes("Cannot coerce") || innerMsg.includes("User not found"))) {
+          console.log("Trying to find user by email...");
           try {
             const users = await getAllUsers();
+            console.log("All users:", users);
             const matched = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+            console.log("Matched user:", matched);
+            
             if (matched && matched.username) {
               payload = {
-                ...payload,
                 username: matched.username,
+                password,
               };
+              console.log("Retry with username:", payload);
               const user = await login(payload);
+              console.log("Login successful with username, user:", user);
               saveAuthUser(user);
               navigate("/");
               return;
             }
           } catch (userFetchErr) {
+            console.error("Error fetching users:", userFetchErr);
           }
         }
 
@@ -61,6 +80,7 @@ export default function Login() {
       }
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Đăng nhập thất bại";
+      console.error("Final error:", msg, err?.response?.data);
       if (msg.includes("Cannot coerce")) {
         setError("Lỗi đăng nhập: không tìm được username phù hợp với email, vui lòng kiểm tra hoặc đăng ký lại.");
       } else {
