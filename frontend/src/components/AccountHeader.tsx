@@ -15,11 +15,11 @@ export default function AccountHeader() {
       </div>
 
       <div className="mt-2 flex gap-3">
-        <button className="px-3 py-1 rounded-full border border-gray-300 bg-white text-sm">
+        <button className="px-3 py-1 rounded-full border border-gray-300 bg-white text-sm hover:bg-gray-400 transition-colors">
           💬 Chat
         </button>
 
-        <button className="px-4 py-1 rounded-full bg-blue-500 text-white text-sm">
+        <button className="px-4 py-1 rounded-full bg-blue-500 text-white text-sm hover:bg-blue-600 transition-colors">
           Theo dõi
         </button>
       </div>

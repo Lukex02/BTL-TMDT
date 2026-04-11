@@ -38,6 +38,7 @@ export class OrderItemDto {
 
 export class OrderDto {
   @IsNumber()
+  @IsOptional()
   @ApiProperty({
     description: 'Order ID',
     example: 1,
@@ -67,13 +68,33 @@ export class OrderDto {
     required: true,
   })
   @IsString()
+  @IsOptional()
   status: 'pending' | 'paid' | 'shipped' | 'completed' | 'canceled';
+
+  @ApiProperty({
+    description: 'Phone',
+    example: '0123456789',
+    required: true,
+  })
+  @IsString()
+  @IsOptional()
+  phone: string;
+
+  @ApiProperty({
+    description: 'Address',
+    example: '0123456789',
+    required: true,
+  })
+  @IsString()
+  @IsOptional()
+  address: string;
 
   @ApiProperty({
     description: 'Order created at',
     required: false,
   })
   @IsDateString()
+  @IsOptional()
   createdAt?: Date;
 
   @ApiProperty({
@@ -81,6 +102,7 @@ export class OrderDto {
     required: false,
   })
   @IsDateString()
+  @IsOptional()
   updatedAt?: Date;
 
   @ApiProperty({

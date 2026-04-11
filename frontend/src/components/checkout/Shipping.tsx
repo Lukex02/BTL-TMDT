@@ -18,6 +18,7 @@ export default function ShippingStep({
 }: Props) {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const user = getAuthUser();
 
 const handleCreateOrder = async () => {
   const totalWithQuantities = cartItems.reduce(
