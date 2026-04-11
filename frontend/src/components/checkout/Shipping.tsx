@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createOrder } from "../../services/order.service";
 import type { Product } from "../../types/product";
+import { getAuthUser } from "../../services/auth.service";
 
 type Props = {
   cartItems: Product[];
@@ -17,11 +18,16 @@ export default function ShippingStep({
 }: Props) {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const user = getAuthUser();
 
   const handleCreateOrder = async () => {
+    console.log(user);
     const res = await createOrder({
       phone,
       address,
+      userId: user?.id,
+      totalAmount: cartItems.reduce((acc, item) => acc + item.price, 0),
+      status: "pending",
       items: cartItems.map((p) => ({
         productId: p.id,
         quantity: 1,

@@ -24,6 +24,7 @@ export default function PaymentStep({
       orderId,
       amount: total,
       method: "card",
+      status: "pending",
     });
 
     next();

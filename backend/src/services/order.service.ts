@@ -202,6 +202,8 @@ export class OrderService implements IOrderService {
   private mapOrderDtoToDb(order: OrderDto) {
     return {
       buyer_id: order.userId,
+      phone: order.phone,
+      address: order.address,
       total_amount: order.totalAmount,
       status: order.status,
     };
