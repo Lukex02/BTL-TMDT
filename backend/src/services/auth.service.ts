@@ -42,23 +42,29 @@ export class AuthService implements IAuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const { username, email, password } = loginDto;
-    let loginEmail = email;
+    const { email, password } = loginDto;
+
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+
     const { data: account, error: errorAcc } = await this.supabase
       .from('User')
       .select()
-      .eq('username', username)
-      .single();
+      .eq('email', email)
+      .maybeSingle();
+
     if (errorAcc) {
       throw new BadRequestException(errorAcc.message);
     }
+
     if (!account) {
       throw new NotFoundException('User not found');
     }
-    if (!loginEmail) loginEmail = account.email;
+
     const { data: signIn, error: errorSignIn } =
       await this.supabase.auth.signInWithPassword({
-        email: loginEmail!,
+        email: account.email,
         password,
       });
     if (errorSignIn) {

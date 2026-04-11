@@ -6,7 +6,7 @@ export interface IProductService {
   getAllProducts(): Promise<any[]>;
   getProductById(productId: number): Promise<Product | null>;
   getProductByFilter(filter: ProductFilterDto): Promise<any[]>;
-  createProduct(create: ProductDto): Promise<any>;
+  createProduct(create: ProductDto, sellerId: string): Promise<any>;
   updateProduct(update: ProductDto): Promise<any>;
   deleteProduct(productId: number): Promise<any>;
   // Categories

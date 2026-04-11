@@ -11,7 +11,7 @@ export default function Navbar() {
     if (user) {
       navigate("/info");
     } else {
-      navigate("/info");
+      navigate("/login");
     }
   };
 

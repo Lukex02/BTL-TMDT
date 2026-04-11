@@ -1,159 +1,267 @@
-// src/pages/ProductDetail.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { getProductById } from "../services/product.service";
+import { getReviewsByProductId, createReview } from "../services/review.service";
+import { getAuthUser } from "../services/auth.service";
 import { mockProducts } from "../services/mockproduct";
+import type { Product } from "../types/product";
+
+interface Review {
+  id?: number;
+  userId?: string;
+  productId?: number;
+  rating: number;
+  comment?: string;
+  createdAt?: Date;
+}
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
+  const user = getAuthUser();
+
+  // State quản lý Sản phẩm
+  const [product, setProduct] = useState<Product | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isFromMock, setIsFromMock] = useState(false);
 
-  const product = mockProducts.find((p) => p.id === id);
+  // State quản lý Form Đánh giá
+  const [newRating, setNewRating] = useState<number>(5);
+  const [newComment, setNewComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  if (!product) {
+  useEffect(() => {
+    const fetchProductData = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const productId = parseInt(id, 10);
+        
+        // 1. Lấy thông tin sản phẩm
+        const data = await getProductById(productId);
+        if (!data) throw new Error("Không tìm thấy sản phẩm trên server");
+        
+        setProduct(data);
+        setIsFromMock(false);
+
+        // 2. Lấy danh sách đánh giá
+        const reviewData = await getReviewsByProductId(productId);
+        setReviews(reviewData || []);
+      } catch (err) {
+        console.error("Dùng dữ liệu mẫu do API lỗi:", err);
+        const mockProduct = mockProducts.find((p) => p.id === parseInt(id, 10));
+        if (mockProduct) {
+          setProduct(mockProduct);
+          setIsFromMock(true);
+          setReviews([]);
+        } else {
+          setError("Sản phẩm không tồn tại.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductData();
+  }, [id]);
+
+  // Logic xử lý khi submit form đánh giá
+  const handleSubmittingReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      alert("Vui lòng đăng nhập để đánh giá sản phẩm!");
+      return;
+    }
+    
+    if (!id) return;
+
+    try {
+      setSubmitting(true);
+      const reviewData = {
+        productId: parseInt(id, 10),
+        userId: user.id,
+        rating: newRating,
+        comment: newComment,
+      };
+
+      // Gọi API tạo review
+      await createReview(reviewData);
+
+      alert("Cảm ơn bạn đã để lại đánh giá!");
+      
+      // Xóa trắng form sau khi gửi thành công
+      setNewComment("");
+      setNewRating(5);
+
+      // Tải lại danh sách review mới nhất
+      const updatedReviews = await getReviewsByProductId(parseInt(id, 10));
+      setReviews(updatedReviews);
+    } catch (err) {
+      console.error("Gửi đánh giá thất bại:", err);
+      alert("Không thể gửi đánh giá lúc này. Vui lòng thử lại sau.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Các trạng thái Loading và Lỗi
+  if (loading) return <><Navbar /><div style={{ padding: "100px", textAlign: "center" }}><h2>Đang tải...</h2></div><Footer /></>;
+  if (!product) return <><Navbar /><div style={{ padding: "100px", textAlign: "center" }}><h2>{error || "Sản phẩm không tồn tại!"}</h2><Link to="/">Về trang chủ</Link></div><Footer /></>;
+
+  // Tính toán điểm đánh giá trung bình
+  const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+
+  // Hàm render giao diện ngôi sao
+  const renderStars = (rating: number, clickable = false) => {
     return (
-      <>
-        <Navbar />
-        <div style={{ padding: "100px", textAlign: "center" }}>
-          <h2>Không tìm thấy sản phẩm!</h2>
-          <Link to="/">Quay về trang chủ</Link>
-        </div>
-        <Footer />
-      </>
+      <div style={{ display: "inline-flex", gap: "2px" }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            onClick={() => clickable && setNewRating(star)}
+            style={{
+              cursor: clickable ? "pointer" : "default",
+              color: star <= (clickable ? newRating : rating) ? "#facc15" : "#cbd5e1",
+              fontSize: clickable ? "28px" : "18px",
+              transition: "color 0.2s"
+            }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
     );
-  }
+  };
+
+  // Xác định hình ảnh chính
+  const mainImage = product.images && product.images.length > 0 ? product.images[0].url : (isFromMock ? (product as any).image : null);
 
   return (
     <>
       <Navbar />
+      
+      {isFromMock && (
+        <div style={{ background: '#fff3cd', color: '#856404', padding: '10px', textAlign: 'center' }}>
+          <strong>Lưu ý:</strong> Đang hiển thị dữ liệu mẫu do API hiện không phản hồi.
+        </div>
+      )}
 
-      <div className="product-detail-page">
-        <div className="breadcrumb">
-          <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>Trang chủ</Link> / <span>Máy tính & Laptop</span> / <span className="active">{product.name}</span>
+      <div className="product-detail-page" style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
+        {/* Breadcrumb */}
+        <div className="breadcrumb" style={{ marginBottom: "20px", fontSize: "14px", color: "#64748b" }}>
+          <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>Trang chủ</Link> / 
+          <span> {product.category?.name || "Linh kiện"}</span> / 
+          <span style={{ fontWeight: "600", color: "#1e293b" }}> {product.name}</span>
         </div>
 
-        <div className="detail-main">
+        {/* Thông tin chính */}
+        <div className="detail-main" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "50px" }}>
           <div className="detail-gallery">
-            <div className="main-img-box">
-              <img src={product.image} alt={product.name} />
-            </div>
-            <div className="thumb-list">
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="thumb-item">
-                  <img src={product.image} alt={`thumb-${item}`} />
-                </div>
-              ))}
+            <div className="main-img-box" style={{ borderRadius: "16px", overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#fff", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
+              {mainImage ? (
+                <img src={mainImage} alt={product.name} style={{ width: "100%", height: "auto", display: "block", objectFit: "contain" }} />
+              ) : (
+                <span style={{ fontSize: "64px", color: "#cbd5e1" }}>📦</span>
+              )}
             </div>
           </div>
 
           <div className="detail-info">
-            <h1 className="detail-title">{product.name}</h1>
-            
-            <div className="detail-rating">
-              ★★★★★ <span>(132 đánh giá)</span>
+            <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "10px" }}>{product.name}</h1>
+            <div style={{ marginBottom: "15px", display: "flex", alignItems: "center" }}>
+              {renderStars(averageRating)} 
+              <span style={{ color: "#64748b", marginLeft: "10px", fontWeight: "500" }}>({reviews.length} đánh giá)</span>
             </div>
-
-            <div className="detail-price">
+            <div style={{ fontSize: "32px", fontWeight: "800", color: "var(--primary)", marginBottom: "20px" }}>
               {product.price.toLocaleString("vi-VN")} VNĐ
             </div>
+            <p style={{ color: "#475569", lineHeight: "1.6", marginBottom: "25px" }}>{product.description}</p>
             
-            <div className="detail-stock">
-              • Còn hàng (3 sản phẩm)
-            </div>
-
-            <div className="detail-short-desc">
-              <strong>Thông tin sản phẩm:</strong> Máy tính để bàn chơi game. Cấu hình mạnh mẽ, lý tưởng cho các tác vụ đòi hỏi cao, hoàn hảo để hiển thị hình ảnh chất lượng cao trong trò chơi và video.
-            </div>
-
-            <div className="detail-cert">
-              <div className="detail-cert-icon">🛡️</div>
-              <div className="detail-cert-text">
-                <strong>Sản phẩm đã được kiểm chứng</strong>
-                <span>Chưa an tâm? Hãy sử dụng thêm dịch vụ kiểm tra chất lượng 120% của chúng tôi</span>
+            <div style={{ display: "flex", gap: "15px", alignItems: "center", marginBottom: "30px" }}>
+              <div className="qty-control" style={{ display: "flex", border: "1px solid #cbd5e1", borderRadius: "25px", overflow: "hidden" }}>
+                <button style={{ padding: "10px 15px", border: "none", background: "#f8fafc", cursor: "pointer" }} onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+                <input style={{ width: "40px", textAlign: "center", border: "none", fontWeight: "600", outline: "none" }} type="text" value={quantity} readOnly />
+                <button style={{ padding: "10px 15px", border: "none", background: "#f8fafc", cursor: "pointer" }} onClick={() => setQuantity(quantity + 1)}>+</button>
               </div>
-            </div>
-
-            <div className="detail-actions">
-              <div className="qty-control">
-                <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
-                <input className="qty-input" type="text" value={quantity} readOnly />
-                <button className="qty-btn" onClick={() => setQuantity(quantity + 1)}>+</button>
-              </div>
-              <button className="add-to-cart-btn">
+              <button style={{ flex: 1, padding: "12px", borderRadius: "25px", border: "none", background: "var(--primary)", color: "#fff", fontWeight: "700", cursor: "pointer", transition: "opacity 0.2s" }} onMouseOver={(e) => e.currentTarget.style.opacity = "0.9"} onMouseOut={(e) => e.currentTarget.style.opacity = "1"}>
                 Thêm vào giỏ hàng
               </button>
-            </div>
-
-            <div className="detail-meta">
-              <p><strong>SKU:</strong> {product.id.toUpperCase()}-001</p>
-              <p><strong>Bảo hành:</strong> 2 năm</p>
-              <p><strong>Vận chuyển:</strong> Miễn phí (1-3 ngày làm việc)</p>
             </div>
           </div>
         </div>
 
-        <section className="section-block">
-          <h3 className="section-title">Thông tin người bán</h3>
-          <div className="seller-box">
-            <div className="seller-avatar">N</div>
-            <div className="seller-info-main">
-              <h4>Nguyễn Văn A <span style={{ color: '#3b82f6' }}>🛡️</span></h4>
-              <div className="seller-buttons">
-                <button className="btn-view-shop">Xem Shop</button>
-                <button className="btn-follow">Theo dõi</button>
+        {/* Thông tin Người bán */}
+        <section style={{ padding: "30px", background: "#fff", borderRadius: "16px", border: "1px solid #e2e8f0", marginBottom: "40px" }}>
+          <h3 style={{ marginBottom: "20px" }}>Thông tin người bán</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+            <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", fontWeight: "bold" }}>
+              {product.seller?.username ? product.seller.username.charAt(0).toUpperCase() : "U"}
+            </div>
+            <div>
+              <h4 style={{ fontSize: "18px", margin: 0 }}>{product.seller?.username || "Người dùng ẩn danh"} <span title="Đã xác thực">🛡️</span></h4>
+              <p style={{ fontSize: "14px", color: "#64748b", margin: "5px 0" }}>Tham gia: {product.createdAt ? new Date(product.createdAt).getFullYear() : "2026"}</p>
+            </div>
+            <button style={{ marginLeft: "auto", padding: "8px 20px", borderRadius: "20px", border: "1px solid var(--primary)", color: "var(--primary)", background: "transparent", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }} onMouseOver={(e) => {e.currentTarget.style.background = "var(--bg-light)"; e.currentTarget.style.color = "var(--primary)"}} onMouseOut={(e) => {e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--primary)"}}>
+              Xem Shop
+            </button>
+          </div>
+        </section>
+
+        {/* Tab Đánh giá */}
+        <section style={{ marginBottom: "50px" }}>
+          <h3 style={{ fontSize: "22px", marginBottom: "25px", borderBottom: "2px solid #f1f5f9", paddingBottom: "10px" }}>Đánh giá sản phẩm</h3>
+          
+          {/* Form nhập đánh giá */}
+          <div style={{ background: "#f8fafc", padding: "25px", borderRadius: "16px", marginBottom: "30px", border: "1px solid #e2e8f0" }}>
+            <h4 style={{ marginBottom: "15px", color: "#0f172a" }}>Viết đánh giá của bạn</h4>
+            <form onSubmit={handleSubmittingReview}>
+              <div style={{ marginBottom: "15px" }}>
+                <p style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#475569" }}>Chọn số sao:</p>
+                {renderStars(0, true)}
               </div>
-            </div>
-            <div className="seller-stats">
-              <div className="stat-item">Đánh giá <strong>4.7k</strong></div>
-              <div className="stat-item">Sản phẩm <strong>36</strong></div>
-              <div className="stat-item">Tham gia <strong>7 năm trước</strong></div>
-              <div className="stat-item">Số lượng theo dõi <strong>3k</strong></div>
-            </div>
+              <div style={{ marginBottom: "15px" }}>
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Bạn thấy sản phẩm này thế nào? Chia sẻ trải nghiệm của bạn nhé..."
+                  style={{ width: "100%", padding: "15px", borderRadius: "12px", border: "1px solid #cbd5e1", minHeight: "100px", outline: "none", fontSize: "14px", fontFamily: "inherit" }}
+                  required
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={submitting}
+                style={{ padding: "10px 30px", borderRadius: "25px", border: "none", background: submitting ? "#94a3b8" : "#1e293b", color: "#fff", fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer", transition: "background 0.2s" }}
+              >
+                {submitting ? "Đang gửi..." : "Gửi đánh giá ngay"}
+              </button>
+            </form>
           </div>
-        </section>
 
-        <section className="section-block">
-          <h3 className="section-title">Mô tả sản phẩm</h3>
-          <div className="desc-content">
-            Máy tính này sử dụng hệ điều hành Windows 11, kết hợp sức mạnh và tính bảo mật của Windows 10 với giao diện và trải nghiệm được làm mới, tích hợp các công cụ, âm thanh và ứng dụng mới để mang lại trải nghiệm hoàn toàn được nâng cao. Máy được trang bị bộ xử lý hiệu năng cao với tám lõi và tám luồng, lý tưởng cho các tác vụ đòi hỏi cao. Nó bao gồm card đồ họa chuyên dụng, hoàn hảo để hiển thị hình ảnh chất lượng cao trong trò chơi và video. RAM DDR4 băng thông cao cho phép đa nhiệm liên tục, mạnh mẽ, lý tưởng cho các trò chơi đòi hỏi cấu hình cao, chỉnh sửa video và chạy nhiều ứng dụng cùng lúc. Ngoài ra, nó còn bao gồm ổ cứng SSD đảm bảo thời gian khởi động nhanh và truy cập dữ liệu nhanh chóng.
-          </div>
-        </section>
-
-        <section className="section-block">
-          <h3 className="section-title">Đánh giá</h3>
-          <div className="review-box">
-            <div className="review-header">
-              <span>★★★★★</span> 5.0/5.0 (4 đánh giá)
-            </div>
-            <div className="review-filter">
-              Tích cực nhất ↓
-            </div>
-            
-            <div className="review-list">
-              {[1, 2].map((item) => (
-                <div key={item} className="review-item">
-                  <div className="reviewer-avatar">
-                    <img src={`https://ui-avatars.com/api/?name=User+${item}&background=random`} alt="user" />
-                  </div>
-                  <div className="review-content">
-                    <h5>Người dùng {item} <span className="stars">★★★★★</span></h5>
-                    <div className="date">2023-10-15 10:10</div>
-                    <p>Sản phẩm chất lượng!</p>
-                  </div>
+          {/* Danh sách đánh giá */}
+          <div className="review-list">
+            {reviews.length > 0 ? (
+              reviews.map((review) => (
+                <div key={review.id} style={{ padding: "20px 0", borderBottom: "1px solid #f1f5f9" }}>
+                  <div style={{ marginBottom: "8px" }}>{renderStars(review.rating)}</div>
+                  <p style={{ margin: "0 0 8px 0", color: "#1e293b", lineHeight: "1.5" }}>{review.comment}</p>
+                  <span style={{ fontSize: "12px", color: "#94a3b8" }}>
+                    Đăng bởi người dùng ẩn danh • {review.createdAt ? new Date(review.createdAt).toLocaleDateString('vi-VN') : 'Mới đây'}
+                  </span>
                 </div>
-              ))}
-            </div>
-
-            <div className="pagination">
-              <button>&lt;</button>
-              <button className="active">1</button>
-              <button>2</button>
-              <button>&gt;</button>
-            </div>
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
+                Chưa có đánh giá nào. Hãy là người đầu tiên!
+              </div>
+            )}
           </div>
         </section>
-
       </div>
 
       <Footer />

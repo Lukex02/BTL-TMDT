@@ -10,7 +10,7 @@ export default function ProductCard({ product }: Props) {
     <div className="product-card">
       <div className="product-image-wrap">
         <img
-          src={product.image}
+          src={product.images?.[0]?.url || "https://via.placeholder.com/300x200?text=No+Image"}
           alt={product.name}
           className="product-image"
         />
