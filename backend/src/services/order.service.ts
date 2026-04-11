@@ -117,7 +117,9 @@ export class OrderService implements IOrderService {
     if (itemErr) {
       throw new BadRequestException(itemErr.message);
     }
-    return { message: 'Order created successfully' };
+    return { message: 'Order created successfully',
+      id: orderId,
+     };
   }
 
   async updateOrderStatus(orderId: number, status: string) {

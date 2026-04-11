@@ -122,6 +122,7 @@ export class ProductService implements IProductService {
   private mapProductDtoToDb(product: ProductDto) {
     return {
       category_id: product.category?.id,
+      seller_id: product.seller?.id,
       name: product.name,
       description: product.description,
       price: product.price,
@@ -193,11 +194,22 @@ export class ProductService implements IProductService {
   }
 
   async createProduct(create: ProductDto) {
-    const { data, error } = await this.supabase
+    const { data:prod, error:prodErr } = await this.supabase
       .from('Product')
-      .insert(this.mapProductDtoToDb(create));
-    if (error) {
-      throw new BadRequestException(error.message);
+      .insert(this.mapProductDtoToDb(create))
+      .select('id')
+      .single();
+    if (prodErr) {
+      throw new BadRequestException(prodErr.message);
+    }
+    const { error: imgErr } = await this.supabase
+      .from('ProductImage')
+      .insert(create.images?.map((img: any) => ({
+        product_id: prod.id,
+        url: img.url,
+      })));
+    if (imgErr) {
+      throw new BadRequestException(imgErr.message);
     }
     return { message: 'Product created successfully' };
   }
