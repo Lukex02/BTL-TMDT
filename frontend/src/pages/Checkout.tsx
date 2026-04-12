@@ -10,11 +10,13 @@ import Footer from "../components/Footer";
 import "../components/styles.css";
 import type { Product } from "../types/product";
 
+// Define this here so it's accessible to the whole checkout flow
+export type CartItem = Product & { quantity: number };
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
 
-  const [cartItems, setCartItems] = useState<Product[]>([]);
+const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orderId, setOrderId] = useState<string | null>(null);
 
   const next = () => setStep((s) => Math.min(s + 1, 4));
