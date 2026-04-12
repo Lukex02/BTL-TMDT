@@ -156,7 +156,7 @@ const OrderDetail: React.FC = () => {
           <div className="mb-8 border-b border-gray-100 pb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex items-center gap-4">
-                <Link to="/orders" className="p-3 border border-gray-200 rounded-lg bg-white shadow-sm hover:bg-gray-50">
+                <Link to="/info" className="p-3 border border-gray-200 rounded-lg bg-white shadow-sm hover:bg-gray-50">
                   <ArrowLeft className="w-5 h-5 !text-gray-700" />
                 </Link>
                 <div>
