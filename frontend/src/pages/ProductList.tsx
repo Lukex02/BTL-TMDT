@@ -1,227 +1,90 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
-import { mockProducts } from "../services/mockproduct";
-import type { Product } from "../types/product";
-
+import { getProductCategories, getProducts } from "../services/product.service";
+import type { Category, Product } from "../types/product";
+import "./ProductList.css";
 
 type SortOption = "default" | "name-asc" | "price-asc" | "price-desc";
 type StockStatus = "all" | "in-stock" | "out-of-stock";
 
-type ProductListItem = Product & {
-  uniqueKey: string;
-  category: string;
-  brand: string;
-  stockStatus: Exclude<StockStatus, "all">;
-  isHotDeal: boolean;
-};
-
 const PAGE_SIZE = 8;
 
-const categories = [
-  "Tất cả",
-  "Máy Tính & Laptop",
-  "Chuột Gaming",
-  "Bàn Phím",
-  "Keycap",
-  "Linh Kiện",
-  "Phụ Kiện",
-];
-
-const brands = ["Tất cả", "HP", "Dell", "ASUS", "Acer", "Logitech", "Razer"];
-
-const seedData: Array<{
-  category: string;
-  brand: string;
-  stockStatus: "in-stock" | "out-of-stock";
-  isHotDeal: boolean;
-}> = [
-    {
-      category: "Máy Tính & Laptop",
-      brand: "HP",
-      stockStatus: "in-stock",
-      isHotDeal: true,
-    },
-    {
-      category: "Máy Tính & Laptop",
-      brand: "Dell",
-      stockStatus: "in-stock",
-      isHotDeal: true,
-    },
-    {
-      category: "Linh Kiện",
-      brand: "ASUS",
-      stockStatus: "in-stock",
-      isHotDeal: true,
-    },
-    {
-      category: "Phụ Kiện",
-      brand: "Acer",
-      stockStatus: "out-of-stock",
-      isHotDeal: false,
-    },
-    {
-      category: "Chuột Gaming",
-      brand: "Logitech",
-      stockStatus: "in-stock",
-      isHotDeal: false,
-    },
-    {
-      category: "Bàn Phím",
-      brand: "Razer",
-      stockStatus: "in-stock",
-      isHotDeal: false,
-    },
-    {
-      category: "Keycap",
-      brand: "Razer",
-      stockStatus: "out-of-stock",
-      isHotDeal: false,
-    },
-    {
-      category: "Máy Tính & Laptop",
-      brand: "HP",
-      stockStatus: "in-stock",
-      isHotDeal: true,
-    },
-    {
-      category: "Linh Kiện",
-      brand: "ASUS",
-      stockStatus: "in-stock",
-      isHotDeal: false,
-    },
-    {
-      category: "Phụ Kiện",
-      brand: "Acer",
-      stockStatus: "in-stock",
-      isHotDeal: false,
-    },
-    {
-      category: "Máy Tính & Laptop",
-      brand: "Dell",
-      stockStatus: "in-stock",
-      isHotDeal: true,
-    },
-    {
-      category: "Chuột Gaming",
-      brand: "Logitech",
-      stockStatus: "in-stock",
-      isHotDeal: false,
-    },
-  ];
-
-const displayProducts: ProductListItem[] = Array.from({ length: 12 }, (_, index) => {
-  const product = mockProducts[index % mockProducts.length];
-  const seed = seedData[index % seedData.length];
-
-  return {
-    ...product,
-    uniqueKey: `${product.id}-${index + 1}`,
-    category: seed.category,
-    brand: seed.brand,
-    stockStatus: seed.stockStatus,
-    isHotDeal: seed.isHotDeal,
-  };
-});
-
-const readNumberParam = (
-  value: string | null,
-  fallback: string
-): string => {
-  if (!value || Number.isNaN(Number(value))) return fallback;
-  return value;
-};
-
 export default function ProductList() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") ?? "Tất cả"
-  );
-  const [selectedBrand, setSelectedBrand] = useState(
-    searchParams.get("brand") ?? "Tất cả"
-  );
-  const [selectedStatus, setSelectedStatus] = useState<StockStatus>(
-    (searchParams.get("status") as StockStatus) ?? "all"
-  );
-  const [minPrice, setMinPrice] = useState(
-    readNumberParam(searchParams.get("min"), "0")
-  );
-  const [maxPrice, setMaxPrice] = useState(
-    readNumberParam(searchParams.get("max"), "30000000")
-  );
-  const [sortBy, setSortBy] = useState<SortOption>(
-    (searchParams.get("sort") as SortOption) ?? "default"
-  );
-  const [visibleCount, setVisibleCount] = useState(() => {
-    const value = Number(searchParams.get("limit"));
-    return Number.isNaN(value) || value <= 0 ? PAGE_SIZE : value;
-  });
-  const [cartIds, setCartIds] = useState<string[]>([]);
-  const [hotDealOnly, setHotDealOnly] = useState(searchParams.get("hot") === "1");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
+  const [selectedStatus, setSelectedStatus] = useState<StockStatus>("all");
+  const [minPrice, setMinPrice] = useState("0");
+  const [maxPrice, setMaxPrice] = useState("3000000");
+  const [sortBy, setSortBy] = useState<SortOption>("default");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
-    const nextParams = new URLSearchParams();
+    const loadData = async () => {
+      try {
+        setLoading(true);
 
-    if (searchTerm.trim()) nextParams.set("q", searchTerm.trim());
-    if (selectedCategory !== "Tất cả") nextParams.set("category", selectedCategory);
-    if (selectedBrand !== "Tất cả") nextParams.set("brand", selectedBrand);
-    if (selectedStatus !== "all") nextParams.set("status", selectedStatus);
-    if (minPrice !== "0") nextParams.set("min", minPrice);
-    if (maxPrice !== "30000000") nextParams.set("max", maxPrice);
-    if (sortBy !== "default") nextParams.set("sort", sortBy);
-    if (visibleCount !== PAGE_SIZE) nextParams.set("limit", String(visibleCount));
-    if (hotDealOnly) nextParams.set("hot", "1");
+        const [productData, categoryData] = await Promise.all([
+          getProducts(),
+          getProductCategories(),
+        ]);
 
-    setSearchParams(nextParams, { replace: true });
-  }, [
-    searchTerm,
-    selectedCategory,
-    selectedBrand,
-    selectedStatus,
-    minPrice,
-    maxPrice,
-    sortBy,
-    visibleCount,
-    hotDealOnly,
-    setSearchParams,
-  ]);
+        setProducts(Array.isArray(productData) ? productData : []);
+        setCategories(Array.isArray(categoryData) ? categoryData : []);
+      } catch (error) {
+        console.error("Lỗi tải dữ liệu trang sản phẩm:", error);
+        setProducts([]);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const categoryOptions = useMemo(() => {
+    const namesFromDb = categories
+      .map((category) => category?.name?.trim())
+      .filter((name): name is string => Boolean(name));
+
+    return ["Tất cả", ...namesFromDb];
+  }, [categories]);
 
   const filteredProducts = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
     const min = Number(minPrice) || 0;
     const max = Number(maxPrice) || Number.MAX_SAFE_INTEGER;
 
-    const result = displayProducts.filter((product) => {
+    const result = products.filter((product) => {
+      const categoryName = product.category?.name ?? "Chưa phân loại";
+      const stockStatus: Exclude<StockStatus, "all"> =
+        product.stock > 0 ? "in-stock" : "out-of-stock";
+
       const matchesKeyword =
         !keyword ||
         product.name.toLowerCase().includes(keyword) ||
-        product.brand.toLowerCase().includes(keyword) ||
-        product.category.toLowerCase().includes(keyword);
+        (product.description ?? "").toLowerCase().includes(keyword) ||
+        categoryName.toLowerCase().includes(keyword);
 
       const matchesCategory =
-        selectedCategory === "Tất cả" || product.category === selectedCategory;
-
-      const matchesBrand =
-        selectedBrand === "Tất cả" || product.brand === selectedBrand;
+        selectedCategory === "Tất cả" || categoryName === selectedCategory;
 
       const matchesStatus =
-        selectedStatus === "all" || product.stockStatus === selectedStatus;
+        selectedStatus === "all" || stockStatus === selectedStatus;
 
       const matchesPrice = product.price >= min && product.price <= max;
-
-      const matchesHotDeal = !hotDealOnly || product.isHotDeal;
 
       return (
         matchesKeyword &&
         matchesCategory &&
-        matchesBrand &&
         matchesStatus &&
-        matchesPrice &&
-        matchesHotDeal
+        matchesPrice
       );
     });
 
@@ -235,14 +98,13 @@ export default function ProductList() {
 
     return result;
   }, [
+    products,
     searchTerm,
     selectedCategory,
-    selectedBrand,
     selectedStatus,
     minPrice,
     maxPrice,
     sortBy,
-    hotDealOnly,
   ]);
 
   const visibleProducts = useMemo(
@@ -255,13 +117,11 @@ export default function ProductList() {
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedCategory("Tất cả");
-    setSelectedBrand("Tất cả");
     setSelectedStatus("all");
     setMinPrice("0");
-    setMaxPrice("30000000");
+    setMaxPrice("3000000");
     setSortBy("default");
     setVisibleCount(PAGE_SIZE);
-    setHotDealOnly(false);
   };
 
   const handleCategoryChange = (category: string) => {
@@ -269,260 +129,193 @@ export default function ProductList() {
     setVisibleCount(PAGE_SIZE);
   };
 
-  const handleAddToCart = (uniqueKey: string) => {
-    setCartIds((prev) =>
-      prev.includes(uniqueKey)
-        ? prev.filter((id) => id !== uniqueKey)
-        : [...prev, uniqueKey]
-    );
-  };
-
   return (
-    <div className="product-list-page">
-      <title>Danh sách sản phẩm</title>
-      <div className="product-list-shell">
-        <div className="product-list-container">
-          <Navbar />
+    <div className="pl-page">
+      <Navbar />
 
-          <div className="product-list-toolbar-top">
-            <div className="product-list-breadcrumb">
-              Trang chủ / Máy tính &amp; Laptop
-            </div>
-
-            <div className="product-list-cart-badge">
-              Giỏ hàng: <strong>{cartIds.length}</strong>
-            </div>
+      <main className="pl-shell">
+        <section className="pl-banner">
+          <div className="pl-banner__left">
+            <span className="pl-banner__brand">PCity</span>
+            <span className="pl-banner__title">Hotdeal RAM</span>
+            <span className="pl-banner__fire">🔥</span>
           </div>
 
-          <div className="product-list-banner">
-            <div className="product-list-banner-left">
-              <span className="product-list-banner-brand">PCity</span>
-              <span className="product-list-banner-title">Hotdeal RAM 🔥</span>
-            </div>
+          <button type="button" className="pl-banner__btn">
+            Xem ngay
+          </button>
+        </section>
 
-            <button
-              type="button"
-              className="product-list-banner-btn"
-              onClick={() => {
-                setHotDealOnly(true);
-                setVisibleCount(PAGE_SIZE);
-              }}
-            >
-              Xem ngay
+        <section className="pl-toolbar">
+          <div className="pl-toolbar__left">
+            <button type="button" className="pl-chip">
+              <span className="pl-chip__icon">▽</span>
+              Bộ lọc
             </button>
-          </div>
 
-          <div className="product-list-search-row">
-            <input
-              type="text"
-              placeholder="Tìm sản phẩm, thương hiệu, danh mục..."
-              value={searchTerm}
+            <select
+              className="pl-control pl-control--select"
+              value={selectedCategory}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+            >
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category === "Tất cả" ? "Hãng" : category}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="pl-control pl-control--select"
+              value={selectedStatus}
               onChange={(e) => {
-                setSearchTerm(e.target.value);
+                setSelectedStatus(e.target.value as StockStatus);
                 setVisibleCount(PAGE_SIZE);
               }}
-              className="product-list-search-input"
-            />
-
-            <button
-              type="button"
-              className="product-list-reset-btn"
-              onClick={resetFilters}
             >
-              Reset
-            </button>
+              <option value="all">Tình trạng</option>
+              <option value="in-stock">Còn hàng</option>
+              <option value="out-of-stock">Hết hàng</option>
+            </select>
           </div>
 
-          <div className="product-list-filter-row">
-            <div className="product-list-filter-left">
-              <div className="product-list-filter-chip">Bộ lọc</div>
+          <div className="pl-toolbar__right">
+            <div className="pl-filter-group">
+              <span className="pl-label">Giá:</span>
+
+              <input
+                type="number"
+                value={minPrice}
+                onChange={(e) => {
+                  setMinPrice(e.target.value);
+                  setVisibleCount(PAGE_SIZE);
+                }}
+                className="pl-control pl-control--input pl-control--price-small"
+              />
+
+              <span className="pl-separator">-</span>
+
+              <input
+                type="number"
+                value={maxPrice}
+                onChange={(e) => {
+                  setMaxPrice(e.target.value);
+                  setVisibleCount(PAGE_SIZE);
+                }}
+                className="pl-control pl-control--input pl-control--price-large"
+              />
+            </div>
+
+            <div className="pl-filter-group">
+              <span className="pl-label">Sắp xếp theo:</span>
 
               <select
-                className="product-list-select"
-                value={selectedBrand}
+                className="pl-control pl-control--select pl-control--sort"
+                value={sortBy}
                 onChange={(e) => {
-                  setSelectedBrand(e.target.value);
+                  setSortBy(e.target.value as SortOption);
                   setVisibleCount(PAGE_SIZE);
                 }}
               >
-                {brands.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand === "Tất cả" ? "Hãng" : brand}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                className="product-list-select"
-                value={selectedStatus}
-                onChange={(e) => {
-                  setSelectedStatus(e.target.value as StockStatus);
-                  setVisibleCount(PAGE_SIZE);
-                }}
-              >
-                <option value="all">Tình trạng</option>
-                <option value="in-stock">Còn hàng</option>
-                <option value="out-of-stock">Hết hàng</option>
+                <option value="default">Phân loại</option>
+                <option value="name-asc">Tên A-Z</option>
+                <option value="price-asc">Giá thấp đến cao</option>
+                <option value="price-desc">Giá cao đến thấp</option>
               </select>
             </div>
+          </div>
+        </section>
 
-            <div className="product-list-filter-right">
-              <div className="product-list-price-group">
-                <span className="product-list-filter-label">Giá:</span>
-                <input
-                  type="number"
-                  value={minPrice}
-                  onChange={(e) => {
-                    setMinPrice(e.target.value);
-                    setVisibleCount(PAGE_SIZE);
-                  }}
-                />
-                <span className="product-list-price-separator">-</span>
-                <input
-                  type="number"
-                  value={maxPrice}
-                  onChange={(e) => {
-                    setMaxPrice(e.target.value);
-                    setVisibleCount(PAGE_SIZE);
-                  }}
-                />
-              </div>
-
-              <div className="product-list-sort-group">
-                <span className="product-list-filter-label">Sắp xếp theo:</span>
-                <select
-                  className="product-list-select"
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value as SortOption);
-                    setVisibleCount(PAGE_SIZE);
-                  }}
-                >
-                  <option value="default">Mặc định</option>
-                  <option value="name-asc">Tên A-Z</option>
-                  <option value="price-asc">Giá thấp đến cao</option>
-                  <option value="price-desc">Giá cao đến thấp</option>
-                </select>
-              </div>
+        <section className="pl-content">
+          <aside className="pl-sidebar">
+            <div className="pl-sidebar__title">
+              <span className="pl-sidebar__icon">▤</span>
+              <span>Tất cả danh mục</span>
             </div>
-          </div>
 
-          <div className="product-list-active-filters">
-            {hotDealOnly && (
-              <button
-                type="button"
-                className="product-list-tag"
-                onClick={() => setHotDealOnly(false)}
-              >
-                Hotdeal ✕
-              </button>
-            )}
-            {selectedCategory !== "Tất cả" && (
-              <button
-                type="button"
-                className="product-list-tag"
-                onClick={() => setSelectedCategory("Tất cả")}
-              >
-                {selectedCategory} ✕
-              </button>
-            )}
-            {selectedBrand !== "Tất cả" && (
-              <button
-                type="button"
-                className="product-list-tag"
-                onClick={() => setSelectedBrand("Tất cả")}
-              >
-                {selectedBrand} ✕
-              </button>
-            )}
-            {selectedStatus !== "all" && (
-              <button
-                type="button"
-                className="product-list-tag"
-                onClick={() => setSelectedStatus("all")}
-              >
-                {selectedStatus === "in-stock" ? "Còn hàng" : "Hết hàng"} ✕
-              </button>
-            )}
-          </div>
+            <div className="pl-sidebar__line" />
 
-          <div className="product-list-main">
-            <aside className="product-list-sidebar">
-              <div className="product-list-sidebar-title">
-                <span className="product-list-sidebar-icon">▤</span>
-                <span>Tất cả danh mục</span>
-              </div>
+            <ul className="pl-sidebar__list">
+              {categoryOptions.map((category) => {
+                const active = selectedCategory === category;
 
-              <div className="product-list-sidebar-divider" />
-
-              <ul className="product-list-sidebar-menu">
-                {categories.map((category) => (
+                return (
                   <li
                     key={category}
-                    className={`product-list-sidebar-item ${selectedCategory === category ? "active" : ""
-                      }`}
                     onClick={() => handleCategoryChange(category)}
+                    className={`pl-sidebar__item ${active ? "active" : ""}`}
                   >
                     {category}
                   </li>
-                ))}
-              </ul>
-            </aside>
+                );
+              })}
+            </ul>
+          </aside>
 
-            <section className="product-list-products">
-              <div className="product-list-result-row">
-                <div className="product-list-result-text">
-                  Hiển thị {visibleProducts.length} / {filteredProducts.length} sản phẩm
-                </div>
+          <section className="pl-products">
+            {searchTerm && (
+              <div className="pl-search">
+                <input
+                  type="text"
+                  placeholder="Tìm sản phẩm..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setVisibleCount(PAGE_SIZE);
+                  }}
+                />
               </div>
+            )}
 
-              {visibleProducts.length > 0 ? (
-                <div className="product-list-grid">
+            {loading ? (
+              <div className="pl-empty">
+                <div className="pl-empty__title">Đang tải sản phẩm...</div>
+              </div>
+            ) : visibleProducts.length > 0 ? (
+              <>
+                <div className="pl-grid">
                   {visibleProducts.map((product) => (
-                    <div key={product.uniqueKey} className="product-list-card-wrap">
+                    <div key={product.id} className="pl-grid__item">
                       <ProductCard product={product} />
-
-                      <button
-                        type="button"
-                        className={`product-list-cart-toggle ${cartIds.includes(product.uniqueKey) ? "active" : ""
-                          }`}
-                        onClick={() => handleAddToCart(product.uniqueKey)}
-                      >
-                        {cartIds.includes(product.uniqueKey)
-                          ? "Đã thêm vào giỏ"
-                          : "Thêm vào giỏ"}
-                      </button>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="product-list-empty">
-                  <div className="product-list-empty-title">
-                    Không tìm thấy sản phẩm phù hợp
-                  </div>
-                  <div className="product-list-empty-desc">
-                    Bạn thử đổi từ khóa tìm kiếm hoặc bấm Reset để xem lại toàn bộ sản phẩm.
-                  </div>
-                </div>
-              )}
 
-              {hasMore && (
-                <div className="product-list-load-more-wrap">
-                  <button
-                    type="button"
-                    className="product-list-load-more-btn"
-                    onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-                  >
-                    Xem thêm
-                  </button>
+                {hasMore && (
+                  <div className="pl-loadmore">
+                    <button
+                      type="button"
+                      className="pl-loadmore__btn"
+                      onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+                    >
+                      Xem thêm
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="pl-empty">
+                <div className="pl-empty__title">
+                  Không tìm thấy sản phẩm phù hợp
                 </div>
-              )}
-            </section>
-          </div>
-        </div>
+                <div className="pl-empty__desc">
+                  Bạn thử đổi bộ lọc hoặc bấm Reset để xem lại toàn bộ sản phẩm.
+                </div>
 
-        <Footer />
-      </div>
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="pl-empty__btn"
+                >
+                  Reset bộ lọc
+                </button>
+              </div>
+            )}
+          </section>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 }
