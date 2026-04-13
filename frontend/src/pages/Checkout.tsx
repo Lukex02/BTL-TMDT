@@ -1,5 +1,5 @@
 // pages/CheckoutPage.tsx
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Stepper from "../components/checkout/Stepper";
 import Cart from "../components/checkout/Cart";
 import Shipping from "../components/checkout/Shipping";
@@ -9,14 +9,15 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "../components/styles.css";
 import type { Product } from "../types/product";
+import { AppContext } from "../AppContext";
 
 // Define this here so it's accessible to the whole checkout flow
 export type CartItem = Product & { quantity: number };
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
+  const { cart, setCart } = useContext(AppContext);
 
-const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orderId, setOrderId] = useState<string | null>(null);
 
   const next = () => setStep((s) => Math.min(s + 1, 4));
@@ -33,15 +34,15 @@ const [cartItems, setCartItems] = useState<CartItem[]>([]);
       <div className="mt-8">
         {step === 1 && (
           <Cart
-            cartItems={cartItems}
-            setCartItems={setCartItems}
+            cartItems={cart}
+            setCartItems={setCart}
             next={next}
           />
         )}
 
         {step === 2 && (
           <Shipping
-            cartItems={cartItems}
+            cartItems={cart}
             setOrderId={setOrderId}
             next={next}
             prev={prev}
@@ -51,7 +52,7 @@ const [cartItems, setCartItems] = useState<CartItem[]>([]);
         {step === 3 && (
           <Payment
             orderId={orderId}
-            cartItems={cartItems}
+            cartItems={cart}
             next={next}
             prev={prev}
           />

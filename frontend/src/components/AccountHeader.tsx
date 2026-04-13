@@ -1,4 +1,11 @@
-export default function AccountHeader() {
+import { Link, useNavigate } from "react-router-dom";
+
+type Props = {
+  account: any;
+};
+
+export default function AccountHeader({ account }: Props) {
+  const navigate = useNavigate();
   return (
     <div className="max-w-6xl w-full mx-auto mt-6 px-4">
   <div className="flex items-center gap-5 bg-gray-200 rounded-xl p-5 mb-8">
@@ -10,14 +17,22 @@ export default function AccountHeader() {
     
     <div className="flex-1">
       <div className="flex items-center gap-2">
-        <h3 className="text-lg font-semibold text-black">Nguyễn Văn A</h3>
+        <h3 className="text-lg font-semibold text-black">{account.username}</h3>
         <span className="text-blue-500">✔</span>
       </div>
 
       <div className="mt-2 flex gap-3">
-        <button className="px-3 py-1 rounded-full border border-gray-300 bg-white text-sm hover:bg-gray-400 transition-colors">
+        <button onClick={() => navigate('/customer-chat')} className="px-3 py-1 rounded-full border border-gray-300 bg-white text-sm hover:bg-gray-400 transition-colors">
           💬 Chat
         </button>
+
+        
+        <Link
+          to={`/seller/${account.id}`}
+          className="px-4 py-1 rounded-full bg-blue-500 text-white text-sm hover:bg-blue-600 transition-colors"
+        >
+          Xem Shop
+        </Link>
 
         <button className="px-4 py-1 rounded-full bg-blue-500 text-white text-sm hover:bg-blue-600 transition-colors">
           Theo dõi

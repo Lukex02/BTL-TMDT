@@ -1,7 +1,4 @@
-import { useEffect } from "react";
-import { getProducts } from "../../services/product.service";
 import type { Product } from "../../types/product";
-import type { CartItem } from "../../pages/Checkout";
 
 type Props = {
   cartItems: (Product & { quantity?: number })[]; // Added quantity support
@@ -10,44 +7,40 @@ type Props = {
 };
 
 export default function CartStep({ cartItems, setCartItems, next }: Props) {
-  useEffect(() => {
-    const fetch = async () => {
-      const data = await getProducts();
-      
-      const initialCart: CartItem[] = data.slice(0, 2).map((p) => ({
-        ...p,
-        quantity: 1,
-      }));
-
-      setCartItems(initialCart);
-    };
-
-    if (cartItems.length === 0) fetch();
-  }, []);
-
   const updateQuantity = (id: number, delta: number) => {
     const updated = cartItems.map((item) => {
       if (item.id === id) {
-        const newQty = Math.max(1, (item.quantity || 1) + delta);
+        const newQty = (item.quantity || 1) + delta;
+        if (newQty === 0) return null;
         return { ...item, quantity: newQty };
       }
       return item;
-    });
+    }).filter((item) => item !== null); 
     setCartItems(updated);
   };
 
   const total = cartItems.reduce((sum, p) => sum + p.price * (p.quantity || 1), 0);
 
   return (
+    <>
+    {cartItems.length <= 0 ? (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-lg text-gray-600">
+            Chưa có sản phẩm nào trong giỏ hàng của bạn.
+          </p>
+        </div>
+      </div>
+    ) : (
     <div className="grid grid-cols-3 gap-8 items-start">
       {/* List of Items */}
       <div className="col-span-2 space-y-4">
         {cartItems.map((p) => (
-          <div key={p.id} className="flex items-center justify-between border border-gray-200 p-5 rounded-xl bg-white shadow-sm">
+          <div key={p.id} className="flex items-center justify-between border border-gray-200 p-5 rounded-xl bg-white shadow-sm gap-5">
             <div className="flex gap-4 flex-1">
               <img
                 src={p.images?.[0]?.url || "/placeholder.png"}
-                className="w-20 h-20 object-cover rounded-md border"
+                className="w-20 h-20 object-contain rounded-md"
               />
               <div className="flex flex-col justify-center max-w-[300px]">
                 <h4 className="text-left font-medium text-gray-800 line-clamp-2 leading-snug">
@@ -63,7 +56,7 @@ export default function CartStep({ cartItems, setCartItems, next }: Props) {
             <div className="flex items-center border rounded-lg bg-gray-50">
               <button
                 onClick={() => updateQuantity(p.id, -1)}
-                className="px-3 py-1 hover:bg-gray-200 transition text-lg font-medium"
+                className="px-3 py-1 rounded-l-lg hover:bg-gray-200 transition text-lg font-medium"
               >
                 -
               </button>
@@ -72,7 +65,7 @@ export default function CartStep({ cartItems, setCartItems, next }: Props) {
               </span>
               <button
                 onClick={() => updateQuantity(p.id, 1)}
-                className="px-3 py-1 hover:bg-gray-200 transition text-lg font-medium"
+                className="px-3 py-1 rounded-r-lg hover:bg-gray-200 transition text-lg font-medium"
               >
                 +
               </button>
@@ -90,7 +83,7 @@ export default function CartStep({ cartItems, setCartItems, next }: Props) {
             <span>Tạm tính:</span>
             <span>{total.toLocaleString()}đ</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-2">
             <span>Vận chuyển:</span>
             <span className="text-green-600 font-medium">Miễn phí</span>
           </div>
@@ -110,5 +103,7 @@ export default function CartStep({ cartItems, setCartItems, next }: Props) {
         </button>
       </div>
     </div>
+    )}
+    </>
   );
 }
