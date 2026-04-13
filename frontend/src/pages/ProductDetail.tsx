@@ -193,7 +193,9 @@ export default function ProductDetail() {
           </div>
 
           <div className="detail-info" style={{ textAlign: "left" }}>
-            <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "10px", color: "#1e293b" }}>{product.name}</h1>
+            <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "10px", color: "#1e293b" }}>{product.name}
+              <span className="text-blue-500"> ✔</span>
+            </h1>
             <div style={{ marginBottom: "15px", display: "flex", alignItems: "center" }}>
               {renderStars(averageRating)} 
               <span style={{ color: "#64748b", marginLeft: "10px", fontWeight: "500" }}>({reviews.length} đánh giá)</span>
