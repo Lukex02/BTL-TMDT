@@ -265,6 +265,7 @@ export default function Info() {
 
   return (
     <div style={{ backgroundColor: "#f4f7f9", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <title>Tài khoản</title>
       <Navbar />
       
       <div className="dashboard-wrapper" style={{ display: "flex", flex: 1, maxWidth: "1400px", margin: "20px auto", gap: "20px", padding: "0 20px", width: "100%" }}>

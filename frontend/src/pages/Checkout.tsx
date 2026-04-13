@@ -24,6 +24,7 @@ const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   return (
     <>
+    <title>Thanh toán</title>
     <Navbar />
 
     <div className="max-w-6xl mx-auto p-6">

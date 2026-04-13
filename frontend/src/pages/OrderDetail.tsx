@@ -148,6 +148,7 @@ const OrderDetail: React.FC = () => {
 
   return (
     <>
+      <title>Đơn hàng</title>
       <Navbar />
       <main className="w-full bg-gray-50 pb-16 pt-8 text-left !text-gray-900 min-h-screen font-sans">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">

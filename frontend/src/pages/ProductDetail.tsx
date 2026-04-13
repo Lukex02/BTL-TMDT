@@ -141,9 +141,9 @@ export default function ProductDetail() {
 
   // Xác định hình ảnh chính
   const mainImage = product.images && product.images.length > 0 ? product.images[0].url : (isFromMock ? (product as any).image : null);
-
   return (
     <>
+      <title>{product.name}</title>
       <Navbar />
       
       {isFromMock && (

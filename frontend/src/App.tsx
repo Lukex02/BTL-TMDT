@@ -22,7 +22,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/seller" element={<Seller />} />
-        <Route path="/support" element={<Home />} />
         <Route path="/cart" element={<Checkout />} />
         <Route path="/forgot" element={<Login />} />
         <Route path="/terms" element={<Register />} />
@@ -33,6 +32,7 @@ function App() {
         <Route path="/customer-chat" element={<CustomerChatPage />} />
         <Route path="/product/:id" element={<ProductDetail />} />
 				<Route path="/order/:id" element={<OrderDetail />} />
+        <Route path="*" element={<div>Not Found</div>} />
 			</Routes>
 		</BrowserRouter>
   );

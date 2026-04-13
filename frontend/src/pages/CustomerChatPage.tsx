@@ -305,6 +305,7 @@ export default function CustomerChatPage() {
 
   return (
     <>
+      <title>Chat</title>
       <Navbar />
 
       <main className="customer-chat-page">

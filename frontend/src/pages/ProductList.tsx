@@ -279,6 +279,7 @@ export default function ProductList() {
 
   return (
     <div className="product-list-page">
+      <title>Danh sách sản phẩm</title>
       <div className="product-list-shell">
         <div className="product-list-container">
           <Navbar />

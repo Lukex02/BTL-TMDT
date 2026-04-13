@@ -45,6 +45,7 @@ const SupportPage: React.FC = () => {
 
   return (
     <>
+      <title>Hỗ trợ</title>
       <Navbar />
 
       <main className="w-full bg-white pb-16 text-left text-base leading-normal text-gray-900">

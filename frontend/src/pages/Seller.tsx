@@ -29,6 +29,7 @@ export default function Seller() {
 
   return (
     <div className="bg-white min-h-screen">
+      <title>Kênh người bán</title>
       <Navbar />
       <AccountHeader />
 

@@ -10,9 +10,9 @@ export default function Banner() {
           Gear
         </h1>
 
-        <button className="px-[20px] py-[10px] rounded-[20px] bg-[#1e88e5] hover:bg-[#1565c0] transition duration-200">
+        <a href="/products" className="px-[20px] py-[10px] rounded-[20px] bg-[#1e88e5] hover:bg-[#1565c0] transition duration-200">
           Khám phá thêm
-        </button>
+        </a>
       </div>
 
       <div className="flex justify-center items-center">
