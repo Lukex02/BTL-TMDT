@@ -131,6 +131,7 @@ export default function ProductList() {
 
   return (
     <div className="pl-page">
+      <title>Khám phá sản phẩm</title>
       <Navbar />
 
       <main className="pl-shell">
