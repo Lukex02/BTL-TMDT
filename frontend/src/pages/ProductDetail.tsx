@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { getProductById } from "../services/product.service";
@@ -21,7 +21,6 @@ interface Review {
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
-  // const navigate = useNavigate();
   const user = getAuthUser();
   const { setCart } = useContext(AppContext);
 
