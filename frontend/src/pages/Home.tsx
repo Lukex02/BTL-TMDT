@@ -33,6 +33,7 @@ export default function Home() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      <title>Trang chủ</title>
       <Navbar />
       <Banner />
       <CategoryBar />

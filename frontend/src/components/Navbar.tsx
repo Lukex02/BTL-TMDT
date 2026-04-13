@@ -20,7 +20,7 @@ export default function Navbar() {
       <div className="nav-left">
         <Link to="/">Trang chủ</Link>
         <Link to="/products">Sản phẩm</Link>
-        <Link to="/seller">Kênh Người Bán</Link>
+        <Link to="/info">Kênh Người Bán</Link>
         <Link to="/support">Hỗ Trợ</Link>
       </div>
 

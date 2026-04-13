@@ -95,6 +95,7 @@ export default function Login() {
 
   return (
     <>
+      <title>Đăng nhập</title>
       <Navbar />
       <div className="auth-page">
         <div className="auth-card">

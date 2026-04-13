@@ -112,9 +112,9 @@ export default function CustomerChatPage() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedConversation?.messages, typing]);
+  // useEffect(() => {
+  //   messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // }, [selectedConversation?.messages, typing]);
 
   const markConversationAsRead = (conversationId: number | string) => {
     setConversations((current) =>
@@ -305,6 +305,7 @@ export default function CustomerChatPage() {
 
   return (
     <>
+      <title>Chat</title>
       <Navbar />
 
       <main className="customer-chat-page">
@@ -312,7 +313,7 @@ export default function CustomerChatPage() {
           <aside className="chat-sidebar">
             <div className="chat-sidebar-top">
               <div>
-                <p className="chat-overline">CSKH Dashboard</p>
+                <p className="chat-overline">Dashboard</p>
                 <h1>Chat với khách hàng</h1>
               </div>
 

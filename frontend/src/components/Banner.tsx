@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Banner() {
+  const navigate = useNavigate();
   return (
     <div className="flex justify-between items-center px-[150px] py-[50px] bg-gradient-to-r from-[#2b2b2b] to-[#1f1f1f] text-white">
       
@@ -10,7 +13,7 @@ export default function Banner() {
           Gear
         </h1>
 
-        <button className="px-[20px] py-[10px] rounded-[20px] bg-[#1e88e5] hover:bg-[#1565c0] transition duration-200">
+        <button className="px-[20px] py-[10px] rounded-[20px] bg-[#1e88e5] hover:bg-[#1565c0] transition duration-200" onClick={() => navigate('/products')}>
           Khám phá thêm
         </button>
       </div>

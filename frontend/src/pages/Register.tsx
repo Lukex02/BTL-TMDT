@@ -52,6 +52,7 @@ export default function Register() {
 
   return (
     <>
+      <title>Đăng ký tài khoản</title>
       <Navbar />
       <div className="auth-page">
         <div className="auth-card">

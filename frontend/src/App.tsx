@@ -13,28 +13,31 @@ import SupportPage from './pages/SupportPage';
 import ProductList from "./pages/ProductList";
 import CustomerChatPage from "./pages/CustomerChatPage";
 import OrderDetail from "./pages/OrderDetail";
+import { AppProvider } from "./AppProvider";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/seller" element={<Seller />} />
-        <Route path="/support" element={<Home />} />
-        <Route path="/cart" element={<Checkout />} />
-        <Route path="/forgot" element={<Login />} />
-        <Route path="/terms" element={<Register />} />
-        <Route path="/policy" element={<Register />} />
-        <Route path="/info" element={<Info />} />
-        <Route path="/support" element={<SupportPage />} />
-        <Route path="/products" element={<ProductList />} />
-        <Route path="/customer-chat" element={<CustomerChatPage />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-				<Route path="/order/:id" element={<OrderDetail />} />
-			</Routes>
-		</BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/seller/:sellerId" element={<Seller />} />
+          <Route path="/cart" element={<Checkout />} />
+          <Route path="/forgot" element={<Login />} />
+          <Route path="/terms" element={<Register />} />
+          <Route path="/policy" element={<Register />} />
+          <Route path="/info" element={<Info />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/customer-chat" element={<CustomerChatPage />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/order/:id" element={<OrderDetail />} />
+          <Route path="*" element={<div>Not Found</div>} />
+        </Routes>
+      </BrowserRouter>
+    </AppProvider>
   );
 }
 

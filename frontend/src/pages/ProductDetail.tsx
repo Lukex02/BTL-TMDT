@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
+import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { getProductById } from "../services/product.service";
@@ -7,6 +7,8 @@ import { getReviewsByProductId, createReview } from "../services/review.service"
 import { getAuthUser } from "../services/auth.service";
 import { mockProducts } from "../services/mockproduct";
 import type { Product } from "../types/product";
+import { AppContext } from "../AppContext";
+import AccountHeader from "../components/AccountHeader";
 
 interface Review {
   id?: number;
@@ -19,8 +21,8 @@ interface Review {
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const user = getAuthUser();
+  const { setCart } = useContext(AppContext);
 
   // State quản lý Sản phẩm
   const [product, setProduct] = useState<Product | null>(null);
@@ -29,11 +31,29 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFromMock, setIsFromMock] = useState(false);
+  const [added, setAdded] = useState(false);
 
   // State quản lý Form Đánh giá
   const [newRating, setNewRating] = useState<number>(5);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const handleAddToCart = async (product: Product) => {
+    try {
+      setCart((prev) => {
+        if (prev.find((p) => p.id === product.id)) {
+          return prev.map((p) => (p.id === product.id ? { ...p, quantity: p.quantity + quantity } : p));
+        }
+        return [...prev, { ...product, quantity: quantity }];
+      });
+      setAdded(true);
+      setTimeout(() => {
+        setAdded(false);
+      }, 1500); // 1.5s quay lại icon
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -141,9 +161,9 @@ export default function ProductDetail() {
 
   // Xác định hình ảnh chính
   const mainImage = product.images && product.images.length > 0 ? product.images[0].url : (isFromMock ? (product as any).image : null);
-
   return (
     <>
+      <title>{product.name}</title>
       <Navbar />
       
       {isFromMock && (
@@ -173,7 +193,9 @@ export default function ProductDetail() {
           </div>
 
           <div className="detail-info" style={{ textAlign: "left" }}>
-            <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "10px", color: "#1e293b" }}>{product.name}</h1>
+            <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "10px", color: "#1e293b" }}>{product.name}
+              <span className="text-blue-500"> ✔</span>
+            </h1>
             <div style={{ marginBottom: "15px", display: "flex", alignItems: "center" }}>
               {renderStars(averageRating)} 
               <span style={{ color: "#64748b", marginLeft: "10px", fontWeight: "500" }}>({reviews.length} đánh giá)</span>
@@ -189,15 +211,15 @@ export default function ProductDetail() {
                 <input style={{ width: "40px", textAlign: "center", border: "none", fontWeight: "600", outline: "none", color: "#0f172a" }} type="text" value={quantity} readOnly />
                 <button style={{ padding: "10px 15px", border: "none", background: "#f8fafc", cursor: "pointer", color: "#0f172a" }} onClick={() => setQuantity(quantity + 1)}>+</button>
               </div>
-              <button style={{ flex: 1, padding: "12px", borderRadius: "25px", border: "none", background: "var(--primary)", color: "#fff", fontWeight: "700", cursor: "pointer", transition: "opacity 0.2s" }} onMouseOver={(e) => e.currentTarget.style.opacity = "0.9"} onMouseOut={(e) => e.currentTarget.style.opacity = "1"}>
-                Thêm vào giỏ hàng
+              <button style={{ flex: 1, width: "15rem", padding: "12px", borderRadius: "25px", border: "none", background: `${added ? "green" : "var(--primary)"}`, color: "#fff", fontWeight: "700", cursor: "pointer", transition: "opacity 0.2s" }} onMouseOver={(e) => e.currentTarget.style.opacity = "0.9"} onMouseOut={(e) => e.currentTarget.style.opacity = "1"} onClick={() => handleAddToCart(product)}>
+                {added ? "✔" : "Thêm vào giỏ hàng"}
               </button>
             </div>
           </div>
         </div>
 
         {/* Thông tin Người bán */}
-        <section style={{ padding: "30px", background: "#fff", borderRadius: "16px", border: "1px solid #e2e8f0", marginBottom: "40px", textAlign: "left" }}>
+        {/* <section style={{ padding: "30px", background: "#fff", borderRadius: "16px", border: "1px solid #e2e8f0", marginBottom: "40px", textAlign: "left" }}>
           <h3 style={{ marginBottom: "20px", color: "#1e293b" }}>Thông tin người bán</h3>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", fontWeight: "bold" }}>
@@ -207,9 +229,9 @@ export default function ProductDetail() {
               <h4 style={{ fontSize: "18px", margin: 0, color: "#1e293b" }}>{product.seller?.username || "Người dùng ẩn danh"} <span title="Đã xác thực">🛡️</span></h4>
               <p style={{ fontSize: "14px", color: "#64748b", margin: "5px 0" }}>Tham gia: {product.createdAt ? new Date(product.createdAt).getFullYear() : "2026"}</p>
             </div>
-            
+         */}
             {/* Nhóm nút chức năng */}
-            <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+           {/* <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
               <button 
                 onClick={() => navigate('/customer-chat')}
                 style={{ padding: "8px 20px", borderRadius: "20px", border: "none", background: "var(--primary)", color: "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: "6px" }}
@@ -228,7 +250,8 @@ export default function ProductDetail() {
               </button>
             </div>
           </div>
-        </section>
+        </section> */}
+        <AccountHeader account={product.seller}/>
 
         {/* Tab Đánh giá */}
         <section style={{ marginBottom: "50px", textAlign: "left" }}>
